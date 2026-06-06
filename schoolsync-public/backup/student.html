@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal | Milestone SMS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root{--bg:#1a472a;--bg2:#0d2818;--card-bg:white;--text:#333;--text2:#666;--border:#ddd;--table-stripe:#f8f9fa;--hover:#f8f9fa;--input-bg:white;--input-border:#ddd;--shadow:rgba(0,0,0,0.1)}
+        .dark-mode{--bg:#1a1a2e;--bg2:#0f0f1a;--card-bg:#2d2d44;--text:#e0e0e0;--text2:#aaa;--border:#444;--table-stripe:#3a3a55;--hover:#3a3a55;--input-bg:#3a3a55;--input-border:#555;--shadow:rgba(0,0,0,0.3)}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,var(--bg),var(--bg2));min-height:100vh;color:var(--text);transition:all .3s}
+        .container{max-width:1200px;margin:0 auto;padding:1.5rem}
+        .login-container{max-width:500px;margin:50px auto;background:var(--card-bg);border-radius:20px;padding:30px;box-shadow:0 20px 40px var(--shadow)}
+        .card{background:var(--card-bg);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 2px 15px var(--shadow)}
+        .header{background:linear-gradient(135deg,#1a472a,#0d2818);color:white;padding:1.5rem 2rem;border-radius:1rem;margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+        .header h2{color:white;border:none;padding:0;margin:0}
+        .header-btn-group{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+        .logo-img{max-height:35px;margin-right:8px;vertical-align:middle}
+        h2{color:#1a472a;margin-bottom:15px;border-left:4px solid #ffa502;padding-left:12px}.dark-mode h2{color:#ffa502}
+        .form-group{margin-bottom:1rem}
+        .form-group label{display:block;font-weight:600;margin-bottom:.3rem;color:var(--text)}
+        .form-group input{width:100%;padding:.8rem;border:1px solid var(--input-border);border-radius:.5rem;font-size:1rem;background:var(--input-bg);color:var(--text)}
+        .form-group input:focus{outline:none;border-color:#ffa502}
+        .btn{background:linear-gradient(135deg,#2ecc71,#27ae60);color:white;border:none;padding:.8rem 1.5rem;border-radius:.5rem;cursor:pointer;font-weight:600;font-size:1rem;width:100%}
+        .btn:hover{transform:translateY(-2px)}
+        .btn-success{background:linear-gradient(135deg,#ffa502,#e67e22)}
+        .btn-info{background:linear-gradient(135deg,#1a472a,#0d2818)}
+        .btn-sm{padding:.3rem .8rem;font-size:.8rem;width:auto}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.5rem}
+        .stat-card{background:linear-gradient(135deg,#1a472a,#0d2818);color:white;padding:1.5rem;border-radius:1rem;text-align:center}
+        .stat-number{font-size:2rem;font-weight:bold}.stat-label{margin-top:.3rem;font-size:.9rem;opacity:.9}
+        .nav-tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;border-bottom:2px solid var(--border);flex-wrap:wrap}
+        .nav-tab{padding:.8rem 1.2rem;background:none;border:none;cursor:pointer;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;font-size:.9rem;transition:all .2s}
+        .nav-tab i{margin-right:6px}
+        .nav-tab:hover{color:#ffa502}
+        .nav-tab.active{color:#ffa502;border-bottom-color:#ffa502}
+        .tab-content{display:none}.tab-content.active{display:block}
+        .error{color:#c62828;background:#ffebee;padding:10px;border-radius:8px;margin:10px 0}
+        .success-box{background:#e8f5e9;padding:1rem;border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #2ecc71;color:#2e7d32}
+        .info-box{background:#e8f5e9;padding:1rem;border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #2ecc71}
+        .warning-box{background:#fff3e0;padding:1rem;border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #f39c12}
+        .approval-banner{background:#fff3cd;padding:1rem;border-radius:.5rem;margin-bottom:1rem;border:2px solid #ffa502;text-align:center}
+        .approval-banner.approved{background:#e8f5e9;border-color:#2ecc71}
+        .grade-a1{background:#2e7d32;color:white;padding:4px 12px;border-radius:20px;display:inline-block;font-weight:bold}
+        .grade-b2{background:#43a047;color:white;padding:4px 12px;border-radius:20px;display:inline-block;font-weight:bold}
+        .grade-b3{background:#66bb6a;color:white;padding:4px 12px;border-radius:20px;display:inline-block;font-weight:bold}
+        .grade-c4{background:#ef6c00;color:white;padding:4px 12px;border-radius:20px;display:inline-block;font-weight:bold}
+        .grade-c5{background:#ff9800;color:white;padding:4px 12px;border-radius:20px;display:inline-block;font-weight:bold}
+        .grade-c6{background:#ffb74d;color:white;padding:4px 12px;border-radius:20px;display:inline-block;font-weight:bold}
+        .grade-d7,.grade-e8,.grade-f9{background:#c62828;color:white;padding:4px 12px;border-radius:20px;display:inline-block;font-weight:bold}
+        .toast{position:fixed;bottom:20px;right:20px;background:#333;color:white;padding:.8rem 1.5rem;border-radius:2rem;z-index:1000;animation:slideIn .3s ease}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:12px;text-align:left;border-bottom:1px solid var(--border)}
+        th{background:var(--table-stripe);font-weight:600}
+        tr:hover{background:var(--hover)}
+        .enrollment-card{border:2px solid #ffa502;padding:1rem;border-radius:.5rem;margin-bottom:1rem;transition:all .3s}
+        .enrollment-card:hover{box-shadow:0 5px 15px rgba(255,165,2,0.2)}
+        .enrollment-card.selected{border-color:#2ecc71;background:#f0fff0}
+        .progress-bar{width:100%;height:10px;background:#eee;border-radius:5px;margin-top:.5rem;overflow:hidden}
+        .progress-fill{height:100%;background:linear-gradient(135deg,#2ecc71,#27ae60);border-radius:5px}
+        .registration-id-display{background:#fff3cd;padding:1.5rem;border-radius:.5rem;text-align:center;border:2px solid #ffa502}
+        .registration-id-display .student-id{font-size:2rem;font-weight:bold;color:#ffa502;letter-spacing:3px;font-family:'Courier New',monospace}
+        .level-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.8rem;font-weight:bold}
+        .level-shs{background:#e8f0fe;color:#1a472a}.level-jhs{background:#fff3e0;color:#e67e22}
+        .brand-footer{text-align:center;padding:1rem;color:#888;font-size:.75rem;margin-top:1rem}
+        .brand-footer span{color:#ffa502}
+        @media print{.btn,.toast,.nav-tabs,.header button,.header-btn-group{display:none!important}.card{box-shadow:none!important;border:1px solid #ddd!important}body{background:white!important}}
+    </style>
+</head>
+<body>
+
+<div id="loginSection" class="login-container">
+    <div style="text-align:center;margin-bottom:1rem">
+        <img src="assets/logo.png" alt="Milestone SMS" style="max-height:60px" onerror="this.style.display='none'">
+    </div>
+    <h1 style="text-align:center;color:#1a472a">🎓 Student Portal</h1>
+    <p style="text-align:center;color:var(--text2)">Milestone SMS</p>
+    <div id="loginMessage"></div>
+    <div class="form-group"><label>🏫 School</label><input type="text" id="studentSchool" placeholder="School name"></div>
+    <div class="form-group"><label>🆔 Student ID</label><input type="text" id="studentIdLogin" placeholder="e.g., STU001" style="font-family:'Courier New',monospace;font-size:1.1rem;letter-spacing:2px"></div>
+    <div class="form-group"><label>🔒 Password</label><input type="password" id="studentPassword" placeholder="Password"></div>
+    <button class="btn" onclick="loginStudent()">Login →</button>
+    <div style="text-align:center;margin-top:1.5rem"><hr style="border-color:var(--border)"><a href="#" onclick="showRegistration()" style="color:#ffa502;text-decoration:none;font-weight:600">New student? Register →</a></div>
+    <div style="text-align:center;margin-top:.5rem"><a href="#" onclick="showStudentForgotPassword()" style="color:#ffa502;font-size:.9rem">Forgot Password?</a></div>
+</div>
+
+<div id="studentForgotSection" style="display:none"><div class="login-container"><h1 style="text-align:center;color:#1a472a">🔐 Reset Password</h1><div id="studentForgotMessage"></div><div class="form-group"><label>🏫 School</label><input type="text" id="sForgotSchool"></div><div class="form-group"><label>🆔 Student ID</label><input type="text" id="sForgotId"></div><div class="form-group"><label>📧 Email</label><input type="email" id="sForgotEmail"></div><button class="btn btn-success" onclick="sendStudentResetCode()">📧 Send Code</button><div id="sResetCodeSection" style="display:none;margin-top:1rem"><div class="form-group"><label>🔢 Code</label><input type="text" id="sResetCode" style="font-family:'Courier New',monospace;font-size:1.2rem;text-align:center;letter-spacing:3px"></div><div class="form-group"><label>🔒 New Password</label><input type="password" id="sNewResetPwd"></div><button class="btn btn-success" onclick="verifyStudentResetCode()">✅ Reset</button></div><div style="text-align:center;margin-top:1rem"><a href="#" onclick="showLogin()" style="color:#ffa502">← Back</a></div></div></div>
+
+<div id="registrationSection" style="display:none"><div class="login-container"><h1 style="text-align:center;color:#1a472a">📝 Register</h1><div id="registrationMessage"></div><div class="form-group"><label>🏫 School *</label><input type="text" id="regSchoolName"></div><div class="form-group"><label>👤 Full Name *</label><input type="text" id="regFullName"></div><div class="form-group"><label>📧 Email</label><input type="email" id="regEmail"></div><div class="form-group"><label>📞 Phone</label><input type="tel" id="regPhone"></div><div class="form-group"><label>🔒 Password *</label><input type="password" id="regPassword" placeholder="Min 6 chars"></div><div class="form-group"><label>🔒 Confirm *</label><input type="password" id="regConfirmPassword"></div><button class="btn btn-success" onclick="registerStudent()">📝 Register →</button><div style="text-align:center;margin-top:1rem"><a href="#" onclick="showLogin()" style="color:#ffa502">← Back</a></div></div></div>
+
+<div id="dashboardSection" style="display:none">
+    <div class="header">
+        <div>
+            <h2>
+                <img src="assets/logo.png" alt="Milestone SMS" class="logo-img" onerror="this.style.display='none'">
+                <span id="schoolName"></span>
+            </h2>
+            <small style="color:#ffcccc">ID: <span id="studentIdDisplay" style="font-weight:bold"></span></small>
+        </div>
+        <div class="header-btn-group">
+            <span style="color:white">👤 <span id="studentDisplayName"></span></span>
+            <button class="btn-sm" onclick="window.print()" style="background:#95a5a6" title="🖨️ Print"><i class="fas fa-print"></i></button>
+            <button class="btn-sm" onclick="toggleDarkMode()" style="background:#555" title="🌓 Dark Mode"><i class="fas fa-moon"></i></button>
+            <button class="btn-sm" onclick="logout()" style="background:#2c3e50" title="🚪 Logout"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </div>
+    <div class="container">
+        <div id="approvalBanner"></div>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-number" id="totalSubjectsEnrolled">0</div><div class="stat-label">My Subjects</div></div>
+            <div class="stat-card"><div class="stat-number" id="overallAverage">0%</div><div class="stat-label">Average</div></div>
+            <div class="stat-card"><div class="stat-number" id="currentGrade">N/A</div><div class="stat-label">Grade</div></div>
+            <div class="stat-card"><div class="stat-number" id="totalAssessments">0</div><div class="stat-label">Assessments</div></div>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('enrollment')" title="Enrollment - Choose your programme and subjects">
+                <i class="fas fa-clipboard-check"></i> Enrollment
+            </button>
+            <button class="nav-tab" onclick="showTab('subjects')" title="My Subjects - View your enrolled subjects">
+                <i class="fas fa-book-open"></i> My Subjects
+            </button>
+            <button class="nav-tab" onclick="showTab('grades')" title="My Grades - Check your assessment results">
+                <i class="fas fa-star"></i> My Grades
+            </button>
+            <button class="nav-tab" onclick="showTab('progress')" title="Progress - Track your academic growth">
+                <i class="fas fa-chart-line"></i> Progress
+            </button>
+            <button class="nav-tab" onclick="showTab('profile')" title="Profile - Manage your account">
+                <i class="fas fa-id-card"></i> Profile
+            </button>
+        </div>
+        <div id="enrollmentTab" class="tab-content active"><div class="card"><h2>📚 Available Programmes</h2><p style="color:var(--text2)">Enroll immediately - teacher approves.</p><div id="availableProgrammes"></div></div><div class="card" id="subjectCard" style="display:none"><h2>📖 Select Subjects</h2><div id="currentEnrollment"></div></div></div>
+        <div id="subjectsTab" class="tab-content"><div class="card"><h2>📖 My Subjects</h2><div id="mySubjectsList"></div></div></div>
+        <div id="gradesTab" class="tab-content"><div class="card"><h2>🎓 My Grades</h2><div id="myGrades"></div></div></div>
+        <div id="progressTab" class="tab-content"><div class="card"><h2>📈 Progress</h2><div id="academicProgress"></div></div><div class="card"><h2>🏆 Term Trend</h2><div id="termTrend"></div></div></div>
+        <div id="profileTab" class="tab-content"><div class="card"><h2>👤 Profile</h2>
+            <div class="form-group"><label>ID</label><input type="text" id="profileStudentId" readonly style="background:var(--input-bg);font-family:'Courier New',monospace"></div>
+            <div class="form-group"><label>Name</label><input type="text" id="profileFullName"></div>
+            <div class="form-group"><label>School</label><input type="text" id="profileSchool" readonly style="background:var(--input-bg)"></div>
+            <div class="form-group"><label>Programme</label><input type="text" id="profileProgramme" readonly style="background:var(--input-bg)"></div>
+            <div class="form-group"><label>Level</label><input type="text" id="profileLevel" readonly style="background:var(--input-bg)"></div>
+            <div class="form-group"><label>Status</label><input type="text" id="profileStatus" readonly style="background:var(--input-bg)"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="profileEmail"></div>
+            <div class="form-group"><label>Phone</label><input type="tel" id="profilePhone"></div>
+            <button class="btn" onclick="updateProfile()" style="width:auto">💾 Update</button>
+            <h3 style="margin-top:2rem">🔐 Change Password</h3>
+            <div class="form-group"><label>Current</label><input type="password" id="currentPwd"></div>
+            <div class="form-group"><label>New</label><input type="password" id="newPassword"></div>
+            <div class="form-group"><label>Confirm</label><input type="password" id="confirmPassword"></div>
+            <button class="btn btn-info" onclick="changePassword()" style="width:auto">🔒 Update</button>
+        </div></div>
+        <div class="brand-footer">© 2024 <span>Milestone SMS</span> • Powered by <span>Milestone Initiative</span></div>
+    </div>
+</div>
+<div id="toast"></div>
+
+<script>
+let currentStudent=null,currentSchool=null,schoolData=null,schools=[],studentResetCodes={},inactivityTimer;
+function hashPassword(pw){const s='SchoolSync_GH_2024';return btoa(btoa(pw+s).split('').reverse().join('')+s)}
+function verifyPassword(input,stored){return hashPassword(input)===stored}
+function toggleDarkMode(){document.body.classList.toggle('dark-mode');localStorage.setItem('darkMode',document.body.classList.contains('dark-mode'))}
+if(localStorage.getItem('darkMode')==='true')document.body.classList.add('dark-mode');
+function resetTimer(){clearTimeout(inactivityTimer);inactivityTimer=setTimeout(()=>{alert('⚠️ Logged out due to inactivity.');logout()},30*60*1000)}
+['mousemove','keypress','click','scroll','touchstart'].forEach(e=>document.addEventListener(e,resetTimer));
+
+function loadSchools(){const s=localStorage.getItem('schoolsync_all_schools');if(s)schools=JSON.parse(s)}
+function loadSchoolData(sn){const k='schoolsync_data_'+sn.toLowerCase().replace(/[^a-z]/g,''),s=localStorage.getItem(k);schoolData=s?JSON.parse(s):{studentIdConfig:{prefix:'STU',nextNumber:1},programmes:[],subjects:[],students:[],scores:[]};if(!schoolData.students)schoolData.students=[];if(!schoolData.studentIdConfig)schoolData.studentIdConfig={prefix:'STU',nextNumber:1};return schoolData}
+function saveSchoolData(){if(currentSchool){const k='schoolsync_data_'+currentSchool.toLowerCase().replace(/[^a-z]/g,'');localStorage.setItem(k,JSON.stringify(schoolData))}}
+function getSchoolDataKey(sn){return'schoolsync_data_'+sn.toLowerCase().replace(/[^a-z]/g,'')}
+function getGrade(s){if(s>=80)return{grade:'A1',class:'grade-a1'};if(s>=70)return{grade:'B2',class:'grade-b2'};if(s>=65)return{grade:'B3',class:'grade-b3'};if(s>=60)return{grade:'C4',class:'grade-c4'};if(s>=55)return{grade:'C5',class:'grade-c5'};if(s>=50)return{grade:'C6',class:'grade-c6'};if(s>=45)return{grade:'D7',class:'grade-d7'};if(s>=40)return{grade:'E8',class:'grade-e8'};return{grade:'F9',class:'grade-f9'}}
+
+function showRegistration(){document.getElementById('loginSection').style.display='none';document.getElementById('registrationSection').style.display='block';document.getElementById('dashboardSection').style.display='none';document.getElementById('studentForgotSection').style.display='none'}
+function showLogin(){document.getElementById('loginSection').style.display='block';document.getElementById('registrationSection').style.display='none';document.getElementById('dashboardSection').style.display='none';document.getElementById('studentForgotSection').style.display='none'}
+function showStudentForgotPassword(){document.getElementById('loginSection').style.display='none';document.getElementById('studentForgotSection').style.display='block'}
+
+function sendStudentResetCode(){const sn=document.getElementById('sForgotSchool').value.trim(),sid=document.getElementById('sForgotId').value.trim(),em=document.getElementById('sForgotEmail').value.trim(),msg=document.getElementById('studentForgotMessage');msg.innerHTML='';if(!sn||!sid||!em){msg.innerHTML='<div class="error">Fill all fields</div>';return}loadSchools();const school=schools.find(s=>s.name.toLowerCase()===sn.toLowerCase());if(!school||!school.isActive){msg.innerHTML='<div class="error">School not found</div>';return}loadSchoolData(sn);const student=schoolData.students.find(s=>s.id===sid);if(!student||!student.email||student.email.toLowerCase()!==em.toLowerCase()){msg.innerHTML='<div class="error">Student/email mismatch</div>';return}const code=String(Math.floor(100000+Math.random()*900000));studentResetCodes[sid]=code;if(typeof emailjs!=='undefined'){emailjs.send('service_xutsaxm','template_avim0kf',{to_email:em,to_name:student.name,student_id:sid,subject:'Milestone SMS - Reset Code',message:`Your code: ${code}`,teacher_name:'Milestone SMS',school_name:sn}).then(()=>{msg.innerHTML='<div class="success-sent">✅ Code sent!</div>';document.getElementById('sResetCodeSection').style.display='block'}).catch(()=>{msg.innerHTML=`<div class="error">Code: <strong>${code}</strong></div>`;document.getElementById('sResetCodeSection').style.display='block'})}else{msg.innerHTML=`<div class="success-sent">Code: <strong>${code}</strong></div>`;document.getElementById('sResetCodeSection').style.display='block'}}
+function verifyStudentResetCode(){const sid=document.getElementById('sForgotId').value.trim(),code=document.getElementById('sResetCode').value.trim(),np=document.getElementById('sNewResetPwd').value,msg=document.getElementById('studentForgotMessage');if(!code||!np){msg.innerHTML='<div class="error">Enter code & password</div>';return}if(np.length<6){msg.innerHTML='<div class="error">6+ chars</div>';return}if(studentResetCodes[sid]!==code){msg.innerHTML='<div class="error">Invalid code</div>';return}const sn=document.getElementById('sForgotSchool').value.trim(),key=getSchoolDataKey(sn),data=JSON.parse(localStorage.getItem(key));const student=data.students.find(s=>s.id===sid);student.password=hashPassword(np);localStorage.setItem(key,JSON.stringify(data));delete studentResetCodes[sid];msg.innerHTML='<div class="success-sent">✅ Reset! <a href="#" onclick="showLogin()">Login</a></div>'}
+
+function registerStudent(){const sn=document.getElementById('regSchoolName').value.trim(),fn=document.getElementById('regFullName').value.trim(),em=document.getElementById('regEmail').value.trim(),ph=document.getElementById('regPhone').value.trim(),pw=document.getElementById('regPassword').value,cpw=document.getElementById('regConfirmPassword').value,msg=document.getElementById('registrationMessage');msg.innerHTML='';if(!sn||!fn||!pw){msg.innerHTML='<div class="error">❌ Fill required fields</div>';return}if(pw!==cpw){msg.innerHTML='<div class="error">❌ Passwords mismatch</div>';return}if(pw.length<6){msg.innerHTML='<div class="error">❌ 6+ chars</div>';return}loadSchools();const school=schools.find(s=>s.name.toLowerCase()===sn.toLowerCase());if(!school||!school.isActive){msg.innerHTML='<div class="error">❌ School not found</div>';return}const key=getSchoolDataKey(sn);let data=localStorage.getItem(key);if(data){schoolData=JSON.parse(data)}else{schoolData={studentIdConfig:{prefix:'STU',nextNumber:1},programmes:[],subjects:[],students:[],scores:[]}}if(!schoolData.students)schoolData.students=[];if(!schoolData.studentIdConfig)schoolData.studentIdConfig={prefix:'STU',nextNumber:1};const cfg=schoolData.studentIdConfig,studentId=cfg.prefix+String(cfg.nextNumber).padStart(3,'0');cfg.nextNumber++;schoolData.students.push({id:studentId,name:fn,email:em,phone:ph,password:hashPassword(pw),programmeId:null,enrolledSubjects:[],approved:false,enrolledAt:new Date().toISOString()});localStorage.setItem(key,JSON.stringify(schoolData));currentSchool=sn;msg.innerHTML=`<div class="registration-id-display"><h3 style="color:#2e7d32">✅ Registered!</h3><p>Your ID:</p><div class="student-id">${studentId}</div><p style="color:var(--text2)">⚠️ Save this ID! Login and enroll.</p><br><button class="btn btn-success" onclick="proceedToLogin('${studentId}','${sn}')">🔑 Login →</button></div>`;['regFullName','regEmail','regPhone','regPassword','regConfirmPassword'].forEach(id=>document.getElementById(id).value='')}
+function proceedToLogin(id,sn){currentSchool=sn;showLogin();document.getElementById('studentIdLogin').value=id;document.getElementById('studentSchool').value=sn}
+
+function loginStudent(){const sn=document.getElementById('studentSchool').value.trim(),sid=document.getElementById('studentIdLogin').value.trim(),pw=document.getElementById('studentPassword').value,msg=document.getElementById('loginMessage');msg.innerHTML='';if(!sn||!sid||!pw){msg.innerHTML='<div class="error">❌ Fill all fields</div>';return}loadSchools();const school=schools.find(s=>s.name.toLowerCase()===sn.toLowerCase());if(!school||!school.isActive){msg.innerHTML='<div class="error">❌ School not found</div>';return}const key=getSchoolDataKey(sn),saved=localStorage.getItem(key);if(!saved){msg.innerHTML='<div class="error">❌ No data</div>';return}schoolData=JSON.parse(saved);let student=schoolData.students.find(s=>s.id===sid);if(!student)student=schoolData.students.find(s=>s.id.toLowerCase()===sid.toLowerCase());if(!student){msg.innerHTML=`<div class="error">❌ Not found: ${sid}<br><a href="#" onclick="showRegistration()">Register →</a></div>`;return}if(!student.password){student.password=hashPassword('student123');localStorage.setItem(key,JSON.stringify(schoolData))}if(!verifyPassword(pw,student.password)){msg.innerHTML='<div class="error">❌ Invalid password</div>';return}currentStudent=student;currentSchool=sn;document.getElementById('loginSection').style.display='none';document.getElementById('registrationSection').style.display='none';document.getElementById('studentForgotSection').style.display='none';document.getElementById('dashboardSection').style.display='block';document.getElementById('schoolName').innerHTML=sn;document.getElementById('studentDisplayName').innerHTML=student.name;document.getElementById('studentIdDisplay').innerHTML=student.id;updateBanner();updateUI();resetTimer();showToast('Welcome '+student.name+'!')}
+function updateBanner(){const b=document.getElementById('approvalBanner');b.innerHTML=currentStudent.approved===false?'<div class="approval-banner">⏳ Pending approval</div>':'<div class="approval-banner approved">✅ Approved!</div>'}
+function logout(){currentStudent=null;currentSchool=null;clearTimeout(inactivityTimer);document.getElementById('dashboardSection').style.display='none';document.getElementById('loginSection').style.display='block';['studentSchool','studentIdLogin','studentPassword'].forEach(id=>document.getElementById(id).value='')}
+
+function updateUI(){if(!schoolData||!currentStudent)return;const key=getSchoolDataKey(currentSchool),saved=localStorage.getItem(key);if(saved){schoolData=JSON.parse(saved);const fresh=schoolData.students.find(s=>s.id===currentStudent.id);if(fresh)currentStudent=fresh}document.getElementById('totalSubjectsEnrolled').innerText=currentStudent.enrolledSubjects?.length||0;let t=0,c=0;schoolData.scores.forEach(sc=>{if(sc.studentId===currentStudent.id){t+=sc.finalScore;c++}});document.getElementById('overallAverage').innerText=(c>0?(t/c).toFixed(1):'0')+'%';document.getElementById('totalAssessments').innerText=c;document.getElementById('currentGrade').innerText=c>0?getGrade(t/c).grade:'N/A';document.getElementById('profileStudentId').value=currentStudent.id;document.getElementById('profileFullName').value=currentStudent.name;document.getElementById('profileSchool').value=currentSchool;document.getElementById('profileEmail').value=currentStudent.email||'';document.getElementById('profilePhone').value=currentStudent.phone||'';const p=schoolData.programmes.find(p=>p.id===currentStudent.programmeId);document.getElementById('profileProgramme').value=p?p.name:'Not enrolled';document.getElementById('profileLevel').value=p?p.level:'—';document.getElementById('profileStatus').value=currentStudent.approved===false?'⏳ Pending':'✅ Approved';updateProgList();updateEnrollment();updateMySubs();updateMyGrades();updateProgress()}
+function updateProgList(){const c=document.getElementById('availableProgrammes');if(!schoolData.programmes.length){c.innerHTML='<div class="warning-box">No programmes</div>';return}c.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1rem">'+schoolData.programmes.map(p=>{const enr=currentStudent.programmeId===p.id,sc=schoolData.subjects.filter(s=>s.programmeId===p.id).length,lc=p.level==='JHS'?'level-jhs':'level-shs';return`<div class="enrollment-card ${enr?'selected':''}"><h3>📚 ${escapeHtml(p.name)}</h3><p><span class="level-badge ${lc}">${escapeHtml(p.level)}</span> | Subjects: ${sc}</p><p>${enr?'✅ Enrolled':'📝 Available'}</p><button class="btn btn-sm ${enr?'btn-success':''}" onclick="${enr?'unenrollProg':'enrollProg'}('${p.id}')" style="margin-top:.5rem;width:100%">${enr?'✅ Leave':'📝 Enroll'}</button></div>`}).join('')+'</div>'}
+function enrollProg(pid){if(currentStudent.programmeId&&!confirm('Change?'))return;currentStudent.programmeId=pid;currentStudent.enrolledSubjects=[];const i=schoolData.students.findIndex(s=>s.id===currentStudent.id);if(i>=0)schoolData.students[i]=currentStudent;saveSchoolData();updateUI();document.getElementById('subjectCard').style.display='block';showToast('✅ Enrolled!')}
+function unenrollProg(){if(confirm('Leave?')){currentStudent.programmeId=null;currentStudent.enrolledSubjects=[];const i=schoolData.students.findIndex(s=>s.id===currentStudent.id);if(i>=0)schoolData.students[i]=currentStudent;saveSchoolData();document.getElementById('subjectCard').style.display='none';updateUI();showToast('Left')}}
+function updateEnrollment(){const c=document.getElementById('currentEnrollment'),card=document.getElementById('subjectCard');if(!currentStudent.programmeId){card.style.display='none';return}card.style.display='block';const p=schoolData.programmes.find(p=>p.id===currentStudent.programmeId);if(!p)return;const subs=schoolData.subjects.filter(s=>s.programmeId===p.id);let h=`<div class="info-box"><strong>📚 ${escapeHtml(p.name)}</strong> <span class="level-badge ${p.level==='JHS'?'level-jhs':'level-shs'}">${escapeHtml(p.level)}</span><br>📖 ${subs.length} subjects</div>`;if(!subs.length)h+='<p>No subjects</p>';else{h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:.5rem">';subs.forEach(s=>{const enr=currentStudent.enrolledSubjects?.includes(s.id);h+=`<div class="enrollment-card ${enr?'selected':''}" style="padding:.8rem"><div style="display:flex;justify-content:space-between;align-items:center"><span>📖 ${escapeHtml(s.name)}</span><button class="btn btn-sm ${enr?'btn-success':''}" onclick="${enr?'unenrollSub':'enrollSub'}('${s.id}')">${enr?'✅ Enrolled':'+ Enroll'}</button></div></div>`});h+='</div>'}c.innerHTML=h}
+function enrollSub(sid){if(!currentStudent.enrolledSubjects)currentStudent.enrolledSubjects=[];if(!currentStudent.enrolledSubjects.includes(sid)){currentStudent.enrolledSubjects.push(sid);const i=schoolData.students.findIndex(s=>s.id===currentStudent.id);if(i>=0)schoolData.students[i]=currentStudent;saveSchoolData();updateUI();showToast('✅ Enrolled!')}}
+function unenrollSub(sid){currentStudent.enrolledSubjects=(currentStudent.enrolledSubjects||[]).filter(id=>id!==sid);const i=schoolData.students.findIndex(s=>s.id===currentStudent.id);if(i>=0)schoolData.students[i]=currentStudent;saveSchoolData();updateUI();showToast('Removed')}
+function updateMySubs(){const c=document.getElementById('mySubjectsList');if(!currentStudent.enrolledSubjects?.length){c.innerHTML='<div class="warning-box">No subjects</div>';return}let subs=currentStudent.enrolledSubjects.map(id=>schoolData.subjects.find(s=>s.id===id)).filter(s=>s);c.innerHTML='<table><thead><tr><th>Subject</th><th style="text-align:center">Avg</th><th style="text-align:center">Best</th><th style="text-align:center">Tests</th></tr></thead><tbody>'+subs.map(s=>{let t=0,c=0,b=0;schoolData.scores.forEach(sc=>{if(sc.studentId===currentStudent.id&&sc.subjectId===s.id){t+=sc.finalScore;c++;if(sc.finalScore>b)b=sc.finalScore}});const avg=c>0?(t/c).toFixed(1):'—',bg=c>0?getGrade(b):{grade:'N/A',class:''};return`<tr><td><strong>${escapeHtml(s.name)}</strong></td><td style="text-align:center">${avg==='—'?'—':avg+'%'}</td><td style="text-align:center"><span class="${bg.class}">${bg.grade}</span></td><td style="text-align:center">${c}</td></tr>`}).join('')+'</tbody></table>'}
+function updateMyGrades(){const c=document.getElementById('myGrades'),ms=schoolData.scores.filter(s=>s.studentId===currentStudent.id).sort((a,b)=>new Date(b.date)-new Date(a.date));c.innerHTML=ms.length?'<table><thead><tr><th>Date</th><th>Subject</th><th>Term</th><th>Final</th><th>Grade</th></tr></thead><tbody>'+ms.map(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subjectId),g=getGrade(sc.finalScore);return`<tr><td>${new Date(sc.date).toLocaleDateString()}</td><td><strong>${su?.name||'—'}</strong></td><td>T${sc.term}</td><td><strong>${sc.finalScore.toFixed(1)}%</strong></td><td><span class="${g.class}">${g.grade}</span></td></tr>`}).join('')+'</tbody></table>':'<div class="warning-box">No assessments</div>'}
+function updateProgress(){const c=document.getElementById('academicProgress');let h='<div style="display:grid;gap:1rem">';const subs=currentStudent.enrolledSubjects||[];if(!subs.length)h+='<p>Enroll in subjects</p>';else{subs.forEach(sid=>{const s=schoolData.subjects.find(s=>s.id===sid);if(s){let t=0,c=0;schoolData.scores.forEach(sc=>{if(sc.studentId===currentStudent.id&&sc.subjectId===sid){t+=sc.finalScore;c++}});const avg=c>0?(t/c).toFixed(1):0,g=c>0?getGrade(parseFloat(avg)):{grade:'N/A',class:''};h+=`<div><div style="display:flex;justify-content:space-between"><strong>${escapeHtml(s.name)}</strong><span>${c} tests | <span class="${g.class}" style="font-size:.8rem">${g.grade}</span> ${avg}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${avg}%"></div></div></div>`}})}h+='</div>';c.innerHTML=h;const tc=document.getElementById('termTrend');let t1=0,t2=0,t3=0,c1=0,c2=0,c3=0;schoolData.scores.forEach(sc=>{if(sc.studentId===currentStudent.id){if(sc.term===1){t1+=sc.finalScore;c1++}if(sc.term===2){t2+=sc.finalScore;c2++}if(sc.term===3){t3+=sc.finalScore;c3++}}});tc.innerHTML=`<div class="stats-grid"><div class="stat-card" style="background:#1a472a"><div class="stat-number">${c1>0?(t1/c1).toFixed(1)+'%':'—'}</div><div class="stat-label">Term 1</div></div><div class="stat-card" style="background:#ffa502"><div class="stat-number">${c2>0?(t2/c2).toFixed(1)+'%':'—'}</div><div class="stat-label">Term 2</div></div><div class="stat-card" style="background:#2ecc71"><div class="stat-number">${c3>0?(t3/c3).toFixed(1)+'%':'—'}</div><div class="stat-label">Term 3</div></div></div>`}
+function updateProfile(){currentStudent.name=document.getElementById('profileFullName').value;currentStudent.email=document.getElementById('profileEmail').value;currentStudent.phone=document.getElementById('profilePhone').value;const i=schoolData.students.findIndex(s=>s.id===currentStudent.id);if(i>=0)schoolData.students[i]=currentStudent;saveSchoolData();document.getElementById('studentDisplayName').innerHTML=currentStudent.name;showToast('✅ Updated!')}
+function changePassword(){const cp=document.getElementById('currentPwd').value,np=document.getElementById('newPassword').value,conp=document.getElementById('confirmPassword').value;if(!cp||!np){showToast('Fill fields');return}if(np!==conp){showToast('Mismatch');return}if(np.length<6){showToast('6+ chars');return}if(!verifyPassword(cp,currentStudent.password)){showToast('Wrong password');return}currentStudent.password=hashPassword(np);const i=schoolData.students.findIndex(s=>s.id===currentStudent.id);if(i>=0)schoolData.students[i]=currentStudent;saveSchoolData();showToast('🔒 Changed!');document.getElementById('currentPwd').value='';document.getElementById('newPassword').value='';document.getElementById('confirmPassword').value=''}
+function showTab(tn){['enrollment','subjects','grades','progress','profile'].forEach(t=>{const el=document.getElementById(t+'Tab');if(el)el.classList.remove('active')});document.getElementById(tn+'Tab').classList.add('active');document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));if(event&&event.target)event.target.classList.add('active')}
+function escapeHtml(s){if(!s)return'';const d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('toast');setTimeout(()=>t.classList.remove('toast'),3000)}
+
+loadSchools();
+window.loginStudent=loginStudent;window.registerStudent=registerStudent;window.proceedToLogin=proceedToLogin;
+window.showRegistration=showRegistration;window.showLogin=showLogin;window.showStudentForgotPassword=showStudentForgotPassword;
+window.sendStudentResetCode=sendStudentResetCode;window.verifyStudentResetCode=verifyStudentResetCode;
+window.logout=logout;window.showTab=showTab;window.enrollProg=enrollProg;window.unenrollProg=unenrollProg;
+window.enrollSub=enrollSub;window.unenrollSub=unenrollSub;
+window.updateProfile=updateProfile;window.changePassword=changePassword;window.toggleDarkMode=toggleDarkMode;
+</script>
+</body>
+</html>

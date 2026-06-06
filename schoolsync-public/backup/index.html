@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milestone SMS | School Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a472a,#0d2818);min-height:100vh;display:flex;align-items:center;justify-content:center;color:white}
+        .container{text-align:center;padding:2rem;max-width:900px}
+        .logo-img{max-height:100px;margin-bottom:1.5rem}
+        .logo-text{font-size:2.5rem;margin-bottom:.3rem}
+        .logo-text span{color:#ffa502}
+        .tagline{color:#ddd;margin-bottom:1rem;font-size:1rem;font-style:italic;max-width:700px;margin-left:auto;margin-right:auto;line-height:1.5}
+        .subtitle{color:#aaa;margin-bottom:3rem;font-size:.95rem}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem}
+        .card{background:rgba(255,255,255,0.08);padding:2rem 1.5rem;border-radius:1rem;text-decoration:none;color:white;transition:all .3s;border:1px solid rgba(255,165,2,0.2);display:block}
+        .card:hover{background:rgba(255,255,255,0.15);transform:translateY(-5px);border-color:#ffa502;box-shadow:0 10px 30px rgba(255,165,2,0.2)}
+        .card i{font-size:2.5rem;margin-bottom:1rem;display:block;color:#ffa502}
+        .card h2{font-size:1.2rem;margin-bottom:.5rem}
+        .card p{font-size:.85rem;color:#aaa;line-height:1.4}
+        .initiative{margin-top:2.5rem;padding:1.5rem;background:rgba(255,165,2,0.1);border-radius:1rem;border:1px solid rgba(255,165,2,0.3)}
+        .initiative h3{color:#ffa502;margin-bottom:.5rem;font-size:1.1rem}
+        .initiative p{color:#ccc;font-size:.85rem;line-height:1.5}
+        .footer{margin-top:2rem;color:#888;font-size:.8rem}
+        .footer span{color:#ffa502}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- LOGO -->
+        <img src="assets/logo.png" alt="Milestone SMS Logo" class="logo-img" onerror="this.style.display='none';document.querySelector('.logo-text').style.display='block'">
+        
+        <div class="logo-text" style="display:none">
+            🏫 <span>Milestone</span> SMS
+        </div>
+        
+        <p class="tagline">"Solving communication problems with Information Technology Systems; making this world an easy and better place"</p>
+        <p class="subtitle">Complete School Management System for Ghana</p>
+        
+        <div class="grid">
+            <a href="/headmaster.html" class="card">
+                <i class="fas fa-user-tie"></i>
+                <h2>Headmaster Portal</h2>
+                <p>Activate school, manage teachers, configure student IDs</p>
+            </a>
+            <a href="/teacher.html" class="card">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <h2>Teacher Portal</h2>
+                <p>Create programmes, enroll students, record marks, generate reports</p>
+            </a>
+            <a href="/student.html" class="card">
+                <i class="fas fa-user-graduate"></i>
+                <h2>Student Portal</h2>
+                <p>Register, enroll in programmes, view grades & progress</p>
+            </a>
+        </div>
+        
+        <div class="initiative">
+            <h3>🌍 A Milestone Initiative</h3>
+            <p>Milestone uses cutting-edge websites and Information Technology Systems to solve ICT communication problems across educational institutions. Our mission is to bridge the gap between traditional school management and modern technology, making education administration seamless, efficient, and accessible to all.</p>
+        </div>
+        
+        <p class="footer">© 2024 <span>Milestone</span> • Ghana Education Service Compatible • Powered by Milestone Initiative</p>
+    </div>
+</body>
+</html>

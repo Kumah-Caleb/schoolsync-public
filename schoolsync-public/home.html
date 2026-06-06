@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milestone School Management System | Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- EmailJS Library -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Segoe UI',sans-serif;
+            background:linear-gradient(225deg,#1a3a2a,#2d1a0a);
+            min-height:100vh;
+            color:white;
+            position:relative;
+        }
+        body::before{
+            content:'';
+            position:fixed;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            width:700px;
+            height:700px;
+            background:url('assets/logo.png') center/contain no-repeat;
+            opacity:0.04;
+            pointer-events:none;
+            z-index:0;
+        }
+        .container{max-width:900px;margin:0 auto;padding:3rem 2rem;position:relative;z-index:1}
+        
+        /* Navigation */
+        .top-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:3rem;flex-wrap:wrap;gap:1rem}
+        .top-nav a{color:#ffa502;text-decoration:none;font-size:.95rem;transition:all .3s}
+        .top-nav a:hover{color:#fff}
+        .nav-links{display:flex;gap:2rem}
+        
+        /* Hero Section */
+        .hero{text-align:center;margin-bottom:3rem}
+        .hero .tagline{
+            color:#ffa502;
+            font-size:1.3rem;
+            font-style:italic;
+            margin-bottom:1rem;
+            line-height:1.6;
+            max-width:700px;
+            margin-left:auto;
+            margin-right:auto;
+            font-weight:500;
+        }
+        .hero h1{font-size:2.5rem;margin-bottom:.5rem;font-weight:800}
+        .hero h1 span{color:#ffa502}
+        .hero p{color:#ccc;font-size:1.1rem}
+        
+        /* Initiative Section */
+        .initiative{
+            background:linear-gradient(135deg,rgba(255,165,2,0.12),rgba(255,165,2,0.04));
+            border:1px solid rgba(255,165,2,0.25);
+            border-radius:1.5rem;
+            padding:2.5rem;
+            margin-bottom:2.5rem;
+            text-align:center;
+        }
+        .initiative .icon-row{font-size:2.5rem;margin-bottom:1rem}
+        .initiative h2{color:#ffa502;font-size:1.5rem;margin-bottom:1rem}
+        .initiative p{color:#ddd;line-height:1.8;font-size:1rem;max-width:700px;margin:0 auto}
+        .initiative .highlight{color:#ffa502;font-weight:600}
+        
+        /* Action Buttons */
+        .btn-group{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;margin-bottom:3rem}
+        .btn{
+            display:inline-block;
+            padding:1rem 2.5rem;
+            border-radius:.8rem;
+            font-weight:700;
+            font-size:1.1rem;
+            text-decoration:none;
+            cursor:pointer;
+            transition:all .3s;
+            border:none;
+            text-align:center;
+        }
+        .btn-primary{background:#ffa502;color:#1a2a1a;box-shadow:0 5px 20px rgba(255,165,2,0.3)}
+        .btn-primary:hover{background:#e69500;transform:translateY(-3px);box-shadow:0 10px 30px rgba(255,165,2,0.4)}
+        .btn-outline{background:transparent;border:2px solid #ffa502;color:#ffa502}
+        .btn-outline:hover{background:#ffa502;color:#1a2a1a;transform:translateY(-3px)}
+        .btn i{margin-right:8px}
+        .btn:disabled{opacity:0.6;cursor:not-allowed;transform:none!important}
+        
+        /* Features Grid */
+        .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-bottom:3rem}
+        .feature-card{
+            background:rgba(255,255,255,0.05);
+            border:1px solid rgba(255,255,255,0.1);
+            border-radius:1rem;
+            padding:1.5rem;
+            text-align:center;
+            transition:all .3s;
+        }
+        .feature-card:hover{background:rgba(255,255,255,0.1);border-color:rgba(255,165,2,0.3)}
+        .feature-card i{font-size:2rem;color:#ffa502;margin-bottom:.8rem}
+        .feature-card h3{font-size:1.1rem;margin-bottom:.5rem;color:#ffa502}
+        .feature-card p{color:#aaa;font-size:.85rem;line-height:1.5}
+        
+        /* Footer */
+        .footer{text-align:center;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.1);color:#888;font-size:.8rem}
+        .footer span{color:#ffa502}
+        
+        /* Modals */
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;justify-content:center;align-items:center}
+        .modal.active{display:flex}
+        .modal-content{background:#1a3020;border-radius:1rem;padding:2rem;max-width:450px;width:90%;border:1px solid rgba(255,165,2,0.3);position:relative}
+        .modal-content h2{color:#ffa502;margin-bottom:1rem;text-align:center}
+        .close-modal{position:absolute;top:10px;right:15px;font-size:1.5rem;cursor:pointer;color:#aaa;background:none;border:none}
+        .close-modal:hover{color:#ffa502}
+        .form-group{margin-bottom:1rem}
+        .form-group label{display:block;margin-bottom:.3rem;color:#ccc;font-size:.9rem}
+        .form-group input,.form-group textarea{width:100%;padding:.7rem;border:1px solid rgba(255,255,255,0.2);border-radius:.5rem;background:rgba(255,255,255,0.05);color:white;font-size:.95rem}
+        .form-group textarea{resize:vertical;min-height:80px}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .password-wrapper{position:relative}
+        .password-wrapper input{padding-right:40px}
+        .toggle-pwd{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;color:#aaa;background:none;border:none}
+        .toggle-pwd:hover{color:#ffa502}
+        .success-msg{background:rgba(46,204,113,0.2);border:1px solid #2ecc71;color:#2ecc71;padding:1rem;border-radius:.5rem;text-align:center;display:none}
+        .error-msg{background:rgba(231,76,60,0.2);border:1px solid #e74c3c;color:#e74c3c;padding:1rem;border-radius:.5rem;text-align:center;display:none}
+        .warning-msg{background:rgba(255,165,2,0.2);border:1px solid #ffa502;color:#ffa502;padding:1rem;border-radius:.5rem;text-align:center;margin-bottom:1rem}
+        
+        /* Loading Spinner */
+        .spinner{
+            display:inline-block;
+            width:16px;
+            height:16px;
+            border:2px solid rgba(255,255,255,0.3);
+            border-top:2px solid #fff;
+            border-radius:50%;
+            animation:spin 0.8s linear infinite;
+            margin-right:8px;
+            vertical-align:middle;
+        }
+        @keyframes spin{to{transform:rotate(360deg)}}
+        
+        /* Notification Toast */
+        .toast{
+            position:fixed;
+            top:20px;
+            right:20px;
+            background:#ffa502;
+            color:#1a2a1a;
+            padding:1rem 1.5rem;
+            border-radius:.5rem;
+            font-weight:600;
+            z-index:2000;
+            animation:slideIn 0.5s ease;
+            box-shadow:0 5px 20px rgba(0,0,0,0.3);
+            max-width:350px;
+        }
+        @keyframes slideIn{
+            from{transform:translateX(100%);opacity:0}
+            to{transform:translateX(0);opacity:1}
+        }
+        .btn-group-modal{display:flex;gap:1rem;justify-content:center;margin-top:1.5rem}
+        .btn-small{
+            padding:.7rem 1.5rem;
+            border-radius:.5rem;
+            font-weight:600;
+            font-size:.9rem;
+            cursor:pointer;
+            transition:all .3s;
+            border:none;
+        }
+        
+        @media(max-width:768px){.hero h1{font-size:1.8rem}.form-row{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation -->
+        <div class="top-nav">
+            <a href="#" onclick="checkPortalAccess(event)"><i class="fas fa-th-large"></i> Enter Portals</a>
+            <div class="nav-links">
+                <a href="#" onclick="openModal('registerModal')"><i class="fas fa-user-plus"></i> Register</a>
+                <a href="#" onclick="openModal('feedbackModal')"><i class="fas fa-comment"></i> Feedback</a>
+            </div>
+        </div>
+        
+        <!-- Hero -->
+        <div class="hero">
+            <p class="tagline">"Solving communication problems with Information Technology Systems; making this world an easy and better place"</p>
+            <h1><span>Milestone</span> School Management System</h1>
+            <p>Complete School Management System for Ghana</p>
+        </div>
+        
+        <!-- Initiative -->
+        <div class="initiative">
+            <div class="icon-row">🏁</div>
+            <h2>A Milestone Initiative</h2>
+            <p>Milestone uses <span class="highlight">cutting-edge websites and Information Technology Systems</span> to solve ICT communication problems across various sectors. Our mission is to bridge the gap between traditional systems and modern technology, making <span class="highlight">administration seamless, efficient, and accessible</span> to all.</p>
+            <p style="margin-top:1rem">From <span class="highlight">education management</span> to <span class="highlight">business solutions</span>, Milestone provides innovative digital tools that transform how organizations operate and communicate.</p>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="btn-group">
+            <a href="#" onclick="checkPortalAccess(event)" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Enter Portals</a>
+            <button class="btn btn-outline" onclick="openModal('registerModal')"><i class="fas fa-user-plus"></i> Create Account</button>
+        </div>
+        
+        <!-- Features -->
+        <div class="features">
+            <div class="feature-card">
+                <i class="fas fa-school"></i>
+                <h3>School Management</h3>
+                <p>Complete system for managing students, teachers, programmes, and academic records</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-chart-bar"></i>
+                <h3>Analytics & Reports</h3>
+                <p>Generate GES-compliant reports, grade distributions, and performance charts</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-envelope"></i>
+                <h3>Communication</h3>
+                <p>Send email notifications to students, parents, and staff directly from the platform</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">© 2024 <span>Milestone School Management System</span> • Powered by <span>Milestone Initiative</span></div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('registerModal')">&times;</button>
+            <h2><i class="fas fa-user-plus"></i> Create Account</h2>
+            <div id="registerSuccess" class="success-msg"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Full Name *</label><input type="text" id="regName" placeholder="Your full name"></div>
+                <div class="form-group"><label>Phone Number *</label><input type="tel" id="regPhone" placeholder="024xxxxxxx"></div>
+            </div>
+            <div class="form-group"><label>Email Address *</label><input type="email" id="regEmail" placeholder="Email"></div>
+            <div class="form-group">
+                <label>Password *</label>
+                <div class="password-wrapper">
+                    <input type="password" id="regPassword" placeholder="Min 6 characters">
+                    <button class="toggle-pwd" onclick="togglePassword('regPassword',this)"><i class="fas fa-eye"></i></button>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="registerUser()" style="width:100%;margin-top:.5rem">Register</button>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div class="modal" id="feedbackModal">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('feedbackModal')">&times;</button>
+            <h2><i class="fas fa-comment"></i> Send Feedback</h2>
+            <div id="feedbackSuccess" class="success-msg"></div>
+            <div id="feedbackError" class="error-msg"></div>
+            <div class="form-row">
+                <div class="form-group"><label>Full Name *</label><input type="text" id="fbName" placeholder="Your name"></div>
+                <div class="form-group"><label>Email</label><input type="email" id="fbEmail" placeholder="Email"></div>
+            </div>
+            <div class="form-group"><label>Subject</label><input type="text" id="fbSubject" placeholder="Feedback subject"></div>
+            <div class="form-group"><label>Message *</label><textarea id="fbMessage" placeholder="Your feedback..."></textarea></div>
+            <button class="btn btn-primary" id="feedbackBtn" onclick="sendFeedback()" style="width:100%;margin-top:.5rem">
+                <i class="fas fa-paper-plane"></i> Send Feedback
+            </button>
+        </div>
+    </div>
+
+    <!-- No Account Warning Modal -->
+    <div class="modal" id="noAccountModal">
+        <div class="modal-content" style="text-align:center">
+            <button class="close-modal" onclick="closeModal('noAccountModal')">&times;</button>
+            <div style="font-size:3rem;margin-bottom:1rem">🔐</div>
+            <h2>No Account Found</h2>
+            <p style="color:#ccc;margin-bottom:1.5rem;line-height:1.6">You need to create an account before accessing the portals. Registration is quick and free!</p>
+            <div class="btn-group-modal">
+                <button class="btn-small btn-primary" onclick="closeModal('noAccountModal');openModal('registerModal')">
+                    <i class="fas fa-user-plus"></i> Create Account
+                </button>
+                <button class="btn-small btn-outline" onclick="closeModal('noAccountModal')">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+// Initialize EmailJS with your public key
+(function(){
+    emailjs.init("CVzkW-GV4NwfsF5GU"); // Replace with your EmailJS public key
+})();
+
+function openModal(id){document.getElementById(id).classList.add('active')}
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+window.onclick=function(e){if(e.target.classList.contains('modal'))e.target.classList.remove('active')}
+
+function showToast(message,type='success'){
+    const toast=document.createElement('div');
+    toast.className='toast';
+    toast.style.background=type==='error'?'#e74c3c':'#ffa502';
+    toast.innerHTML=`<i class="fas ${type==='error'?'fa-exclamation-circle':'fa-info-circle'}"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(()=>toast.remove(),4000);
+}
+
+function checkPortalAccess(event){
+    event.preventDefault();
+    const users=JSON.parse(localStorage.getItem('milestone_users')||'[]');
+    if(users.length===0){
+        openModal('noAccountModal');
+    }else{
+        window.location.href='/portal.html';
+    }
+}
+
+function togglePassword(inputId,btn){
+    const input=document.getElementById(inputId);
+    const icon=btn.querySelector('i');
+    if(input.type==='password'){input.type='text';icon.className='fas fa-eye-slash'}
+    else{input.type='password';icon.className='fas fa-eye'}
+}
+
+function registerUser(){
+    const name=document.getElementById('regName').value.trim();
+    const phone=document.getElementById('regPhone').value.trim();
+    const email=document.getElementById('regEmail').value.trim();
+    const password=document.getElementById('regPassword').value;
+    const msg=document.getElementById('registerSuccess');
+    if(!name||!email||!password){msg.innerHTML='❌ Fill all required fields';msg.style.display='block';return}
+    if(password.length<6){msg.innerHTML='❌ Password must be 6+ characters';msg.style.display='block';return}
+    const users=JSON.parse(localStorage.getItem('milestone_users')||'[]');
+    if(users.find(u=>u.email===email)){msg.innerHTML='❌ Email already registered';msg.style.display='block';return}
+    users.push({name,phone,email,password:btoa(password),registeredAt:new Date().toISOString()});
+    localStorage.setItem('milestone_users',JSON.stringify(users));
+    msg.innerHTML='✅ Account created successfully! Redirecting...';msg.style.display='block';
+    setTimeout(()=>{
+        closeModal('registerModal');
+        window.location.href='/portal.html';
+    },2000);
+}
+
+function sendFeedback(){
+    const name=document.getElementById('fbName').value.trim();
+    const email=document.getElementById('fbEmail').value.trim();
+    const subject=document.getElementById('fbSubject').value.trim();
+    const message=document.getElementById('fbMessage').value.trim();
+    const successMsg=document.getElementById('feedbackSuccess');
+    const errorMsg=document.getElementById('feedbackError');
+    const btn=document.getElementById('feedbackBtn');
+    
+    // Hide previous messages
+    successMsg.style.display='none';
+    errorMsg.style.display='none';
+    
+    if(!name||!message){
+        errorMsg.innerHTML='❌ Please fill in your name and message';
+        errorMsg.style.display='block';
+        return;
+    }
+    
+    // Show loading state
+    btn.disabled=true;
+    btn.innerHTML='<span class="spinner"></span> Sending...';
+    
+    // Prepare template parameters
+    const templateParams={
+        from_name:name,
+        from_email:email||'notprovided@email.com',
+        subject:subject||'No Subject',
+        message:message,
+        to_email:'amenuonacaleb@gmail.com' // REPLACE WITH YOUR GMAIL ADDRESS
+    };
+    
+    // Send email using EmailJS
+    emailjs.send('service_u0nogau','template_z1c20a3',templateParams)
+        .then(function(response){
+            console.log('SUCCESS!',response.status,response.text);
+            successMsg.innerHTML='✅ Feedback sent successfully! Thank you.';
+            successMsg.style.display='block';
+            
+            // Save to localStorage as backup
+            const feedback=JSON.parse(localStorage.getItem('milestone_feedback')||'[]');
+            feedback.push({name,email,subject,message,date:new Date().toISOString()});
+            localStorage.setItem('milestone_feedback',JSON.stringify(feedback));
+            
+            // Clear form
+            document.getElementById('fbName').value='';
+            document.getElementById('fbEmail').value='';
+            document.getElementById('fbSubject').value='';
+            document.getElementById('fbMessage').value='';
+            
+            setTimeout(()=>closeModal('feedbackModal'),2500);
+        })
+        .catch(function(error){
+            console.log('FAILED...',error);
+            errorMsg.innerHTML='❌ Failed to send email. Please try again later.';
+            errorMsg.style.display='block';
+            showToast('Email sending failed. Please check your internet connection.','error');
+            
+            // Save to localStorage as fallback
+            const feedback=JSON.parse(localStorage.getItem('milestone_feedback')||'[]');
+            feedback.push({name,email,subject,message,date:new Date().toISOString(),status:'pending'});
+            localStorage.setItem('milestone_feedback',JSON.stringify(feedback));
+        })
+        .finally(function(){
+            // Reset button state
+            btn.disabled=false;
+            btn.innerHTML='<i class="fas fa-paper-plane"></i> Send Feedback';
+        });
+}
+</script>
+</body>
+</html>

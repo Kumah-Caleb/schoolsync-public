@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milestone SMS | Portals</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
+            font-family:'Segoe UI',sans-serif;
+            background:linear-gradient(225deg,#1a3a2a,#2d1a0a);
+            min-height:100vh;
+            color:white;
+            position:relative;
+        }
+        body::before{
+            content:'';
+            position:fixed;
+            top:50%;
+            left:50%;
+            transform:translate(-50%,-50%);
+            width:600px;
+            height:600px;
+            background:url('assets/logo.png') center/contain no-repeat;
+            opacity:0.03;
+            pointer-events:none;
+            z-index:0;
+        }
+        .container{max-width:1000px;margin:0 auto;padding:2.5rem;position:relative;z-index:1}
+        .back-link{color:#ffa502;text-decoration:none;font-size:1rem;display:inline-block;margin-bottom:2.5rem;transition:all .3s}
+        .back-link:hover{color:#fff;transform:translateX(-5px)}
+        .back-link i{margin-right:8px}
+        .header{text-align:center;margin-bottom:3rem}
+        .header h1{font-size:2.5rem;margin-bottom:.8rem;font-weight:800;text-shadow:0 2px 10px rgba(0,0,0,0.3)}
+        .header h1 span{color:#ffa502}
+        .header p{color:#ddd;font-size:1.1rem}
+        .instructions{
+            background:linear-gradient(135deg,rgba(255,165,2,0.15),rgba(255,165,2,0.05));
+            border:1px solid rgba(255,165,2,0.3);
+            border-radius:1.2rem;
+            padding:2rem;
+            margin-bottom:2.5rem;
+            backdrop-filter:blur(5px);
+        }
+        .instructions h3{color:#ffa502;margin-bottom:1rem;font-size:1.2rem}
+        .instructions ul{list-style:none;padding:0}
+        .instructions li{
+            padding:.6rem 0;
+            color:#eee;
+            font-size:1rem;
+            border-bottom:1px solid rgba(255,255,255,0.05);
+            transition:all .3s;
+        }
+        .instructions li:hover{color:#fff;padding-left:10px}
+        .instructions li i{color:#ffa502;margin-right:10px;width:20px;text-align:center}
+        .instructions li strong{color:#ffa502}
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem}
+        .card{
+            background:linear-gradient(135deg,rgba(255,255,255,0.1),rgba(255,255,255,0.03));
+            padding:2.5rem 1.5rem;
+            border-radius:1.2rem;
+            text-decoration:none;
+            color:white;
+            transition:all .3s;
+            border:1px solid rgba(255,165,2,0.2);
+            display:block;
+            text-align:center;
+            position:relative;
+            overflow:hidden;
+        }
+        .card::before{
+            content:'';
+            position:absolute;
+            top:0;left:0;
+            width:100%;
+            height:3px;
+            background:linear-gradient(90deg,#ffa502,transparent);
+        }
+        .card:hover{
+            background:linear-gradient(135deg,rgba(255,255,255,0.18),rgba(255,255,255,0.08));
+            transform:translateY(-8px);
+            border-color:#ffa502;
+            box-shadow:0 15px 40px rgba(255,165,2,0.2);
+        }
+        .card i{font-size:3rem;margin-bottom:1.2rem;display:block;color:#ffa502}
+        .card h2{font-size:1.3rem;margin-bottom:.8rem;font-weight:700}
+        .card p{font-size:.9rem;color:#ccc;line-height:1.5}
+        .card .who{
+            display:inline-block;
+            background:rgba(255,165,2,0.2);
+            color:#ffa502;
+            padding:5px 15px;
+            border-radius:15px;
+            font-size:.8rem;
+            margin-top:.8rem;
+            font-weight:600;
+            letter-spacing:.5px;
+        }
+        .footer{text-align:center;padding:2.5rem 0 0;color:#888;font-size:.8rem}
+        .footer span{color:#ffa502}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/index.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Home</a>
+        
+        <div class="header">
+            <h1><span>Milestone</span> School Management System</h1>
+            <p>Complete School Management System for Ghana</p>
+        </div>
+        
+        <div class="instructions">
+            <h3><i class="fas fa-info-circle"></i> How to Use This System</h3>
+            <ul>
+                <li><i class="fas fa-key"></i> <strong>Headmasters:</strong> Activate your school with the code from your administrator, then add teachers.</li>
+                <li><i class="fas fa-chalkboard-teacher"></i> <strong>Teachers:</strong> Login with credentials from your headmaster. Create programmes, enroll students, and record marks.</li>
+                <li><i class="fas fa-user-graduate"></i> <strong>Students:</strong> Register with your school name to get a Student ID. Login to enroll and view grades.</li>
+                <li><i class="fas fa-lock"></i> <strong>Administrators:</strong> Use the programmer dashboard (separate URL) to register schools and generate activation codes.</li>
+            </ul>
+        </div>
+        
+        <div class="grid">
+            <a href="/headmaster.html" class="card">
+                <i class="fas fa-user-tie"></i>
+                <h2>Headmaster Portal</h2>
+                <p>Activate school, manage teachers, configure student IDs</p>
+                <span class="who">For Headmasters</span>
+            </a>
+            <a href="/teacher.html" class="card">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <h2>Teacher Portal</h2>
+                <p>Create programmes, enroll students, record marks, generate reports</p>
+                <span class="who">For Teachers</span>
+            </a>
+            <a href="/student.html" class="card">
+                <i class="fas fa-user-graduate"></i>
+                <h2>Student Portal</h2>
+                <p>Register, enroll in programmes, view grades & progress</p>
+                <span class="who">For Students</span>
+            </a>
+        </div>
+        
+        <p class="footer">© 2024 <span>Milestone School Management System</span></p>
+    </div>
+</body>
+</html>
