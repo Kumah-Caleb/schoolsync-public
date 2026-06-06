@@ -3,195 +3,416 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Programmer Dashboard | Milestone School Management System</title>
+    <title>Admin Portal | Milestone SMS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <style>
-        :root{--bg:#1a4a2a;--card-bg:white;--text:#333;--text2:#666;--border:#ddd;--table-stripe:#f8f9fa;--hover:#f8f9fa;--input-bg:white;--input-border:#ddd;--shadow:rgba(0,0,0,0.05);--accent:#c8960a}
-        .dark-mode{--bg:#1a1a2e;--card-bg:#2d2d44;--text:#e0e0e0;--text2:#aaa;--border:#444;--table-stripe:#3a3a55;--hover:#3a3a55;--input-bg:#3a3a55;--input-border:#555;--shadow:rgba(0,0,0,0.3)}
+        :root{--bg:#1a1a2e;--card-bg:#2d2d44;--text:#e0e0e0;--text2:#aaa;--border:#444;--table-stripe:#3a3a55}
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',Roboto,sans-serif;background:linear-gradient(225deg,#8db355,#e0c87a);min-height:100vh;color:var(--text);transition:all .3s}
-        .sidebar{position:fixed;left:0;top:0;width:260px;height:100%;background:linear-gradient(225deg,#8db355,#e0c87a);padding:2rem 1rem;color:white;z-index:100}
-        .logo{padding-bottom:1.5rem;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:2rem;text-align:center}
-        .logo img{width:200px;height:auto}
-        .logo-text{font-size:1.3rem;font-weight:bold}
-        .logo-text span{color:var(--accent)}
-        .sidebar nav a{display:block;padding:.8rem 1rem;color:rgba(255,255,255,0.7);text-decoration:none;border-radius:.5rem;margin-bottom:.5rem;transition:all .3s;cursor:pointer}
-        .sidebar nav a i{margin-right:8px}
-        .sidebar nav a:hover,.sidebar nav a.active{background:rgba(255,165,2,0.2);color:var(--accent)}
-        .main-content{margin-left:260px;padding:2rem}
-        .top-bar{background:var(--card-bg);padding:1rem 2rem;border-radius:1rem;margin-bottom:2rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 10px var(--shadow);flex-wrap:wrap;gap:1rem}
-        .header-btn-group{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin-bottom:2rem}
-        .stat-card{background:var(--card-bg);padding:1.5rem;border-radius:1rem;box-shadow:0 2px 10px var(--shadow);transition:transform .3s}
-        .stat-card:hover{transform:translateY(-5px)}
-        .stat-number{font-size:2rem;font-weight:bold;color:#1a472a}.dark-mode .stat-number{color:var(--accent)}
-        .stat-label{color:var(--text2);margin-top:.5rem;font-size:.9rem}
-        .card{background:var(--card-bg);border-radius:1rem;padding:1.5rem;margin-bottom:1.5rem;box-shadow:0 2px 10px var(--shadow)}
-        .card h2{color:#1a472a;margin-bottom:1.2rem;border-left:4px solid var(--accent);padding-left:1rem}.dark-mode .card h2{color:var(--accent)}
-        .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:1rem}
-        .form-group{margin-bottom:1rem}
-        .form-group label{display:block;font-weight:600;margin-bottom:.3rem;color:var(--text);font-size:.9rem}
-        .form-group input,.form-group select{width:100%;padding:.7rem;border:1px solid var(--input-border);border-radius:.5rem;font-size:.95rem;background:var(--input-bg);color:var(--text)}
-        .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent)}
-        .btn{background:linear-gradient(135deg,#c8960a,#e67e22);color:white;border:none;padding:.7rem 1.5rem;border-radius:.5rem;cursor:pointer;font-weight:600;transition:transform .2s}
+        body{font-family:'Segoe UI',sans-serif;background:linear-gradient(225deg,#1a1a2e,#0f0f1a);min-height:100vh;color:var(--text)}
+        .container{max-width:1200px;margin:0 auto;padding:2rem}
+        .card{background:var(--card-bg);border-radius:1.5rem;padding:2rem;margin-bottom:2rem;box-shadow:0 20px 40px rgba(0,0,0,0.3)}
+        .header{text-align:center;margin-bottom:2rem}
+        .header h1{color:#ffa502;font-size:2rem}
+        .form-group{margin-bottom:1.2rem}
+        .form-group label{display:block;font-weight:600;margin-bottom:.4rem;color:var(--text)}
+        .form-group input,.form-group select{width:100%;padding:.8rem;border:1px solid var(--border);border-radius:.5rem;font-size:1rem;background:var(--card-bg);color:var(--text)}
+        .form-group input:focus,.form-group select:focus{outline:none;border-color:#ffa502}
+        .btn{background:linear-gradient(225deg,#ffa502,#e69500);color:#1a1a2e;border:none;padding:.8rem 1.5rem;border-radius:.5rem;cursor:pointer;font-weight:600;width:100%;font-size:1rem}
         .btn:hover{transform:translateY(-2px)}
-        .btn-danger{background:linear-gradient(135deg,#e74c3c,#c0392b)}
-        .btn-success{background:linear-gradient(135deg,#2ecc71,#27ae60)}
-        .btn-warning{background:linear-gradient(135deg,#ffa502,#e67e22)}
-        .btn-sm{padding:.3rem .8rem;font-size:.8rem}
-        .btn-group{display:flex;gap:.5rem;flex-wrap:wrap}
-        .search-container{display:flex;gap:.5rem;margin-bottom:1rem;align-items:center;flex-wrap:wrap}
-        .search-input{flex:1;min-width:200px;padding:.7rem 1rem;border:1px solid var(--input-border);border-radius:.5rem;font-size:.95rem;background:var(--input-bg);color:var(--text)}
-        .search-input:focus{outline:none;border-color:var(--accent)}
-        .search-btn{background:var(--accent);color:white;border:none;padding:.7rem 1.2rem;border-radius:.5rem;cursor:pointer;font-weight:600}
-        .clear-search{background:#ff4757;color:white;border:none;padding:.5rem 1rem;border-radius:.5rem;cursor:pointer;display:none}
-        .search-stats{font-size:.85rem;color:var(--text2);margin-bottom:.5rem}
-        .highlight{background:#fff3cd;padding:.1rem .3rem;border-radius:.2rem}
+        .btn-outline{background:transparent;border:2px solid #ffa502;color:#ffa502;width:auto}
+        .btn-danger{background:linear-gradient(135deg,#e74c3c,#c0392b);color:white;width:auto}
+        .btn-sm{padding:.4rem .8rem;font-size:.8rem;width:auto}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:2rem}
+        .stat-card{background:linear-gradient(225deg,#ffa502,#e69500);color:#1a1a2e;padding:1.5rem;border-radius:1rem;text-align:center}
+        .stat-number{font-size:2rem;font-weight:bold}
+        .stat-label{margin-top:.3rem;font-size:.9rem}
+        .tabs{display:flex;gap:.5rem;margin-bottom:1.5rem;border-bottom:2px solid var(--border);flex-wrap:wrap}
+        .tab{padding:.8rem 1.2rem;background:none;border:none;cursor:pointer;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px}
+        .tab.active{color:#ffa502;border-bottom-color:#ffa502}
         table{width:100%;border-collapse:collapse;font-size:.9rem}
         th,td{padding:.8rem;text-align:left;border-bottom:1px solid var(--border)}
-        th{background:var(--table-stripe);font-weight:600;color:var(--text)}
-        tr:hover{background:var(--hover)}
-        .status-badge{display:inline-block;padding:.3rem .8rem;border-radius:1rem;font-size:.75rem;font-weight:600;text-transform:uppercase}
-        .status-active{background:#2ecc7120;color:#27ae60;border:1px solid #2ecc7140}
-        .status-inactive{background:#ff475720;color:#c0392b;border:1px solid #ff475740}
-        .code-display{font-family:'Courier New',monospace;background:var(--table-stripe);padding:.3rem .6rem;border-radius:.3rem;letter-spacing:1px;font-weight:bold}
-        .toast{position:fixed;bottom:20px;right:20px;background:#1a472a;color:white;padding:.8rem 1.5rem;border-radius:2rem;z-index:1000;animation:slideIn .3s ease}
+        th{background:var(--table-stripe);font-weight:600}
+        tr:hover{background:var(--table-stripe)}
+        .status-badge{display:inline-block;padding:.2rem .6rem;border-radius:1rem;font-size:.75rem;font-weight:600}
+        .status-active{background:#2ecc7120;color:#27ae60}
+        .status-inactive{background:#e74c3c20;color:#e74c3c}
+        .status-expired{background:#f39c1220;color:#f39c12}
+        .code-display{background:#1a1a2e;padding:1rem;border-radius:.5rem;font-family:'Courier New',monospace;font-size:1.2rem;text-align:center;letter-spacing:3px;color:#ffa502;border:2px dashed #ffa502;margin:1rem 0}
+        .error-box{background:#e74c3c20;padding:1rem;border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #e74c3c;color:#e74c3c}
+        .success-box{background:#2ecc7120;padding:1rem;border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #2ecc71;color:#2ecc71}
+        .search-container{display:flex;gap:.5rem;margin-bottom:1rem}
+        .search-input{flex:1;padding:.7rem 1rem;border:1px solid var(--border);border-radius:.5rem;background:var(--card-bg);color:var(--text)}
+        .toast{position:fixed;bottom:20px;right:20px;background:#ffa502;color:#1a1a2e;padding:.8rem 1.5rem;border-radius:2rem;z-index:1000;animation:slideIn .3s ease;font-weight:600}
         @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-        .empty-state{text-align:center;padding:2rem;color:#999}
-        .brand-footer{text-align:center;padding:1rem;color:#888;font-size:.75rem;margin-top:2rem}
-        .brand-footer span{color:var(--accent)}
-        .inline-logo{vertical-align:middle;margin-right:5px;display:inline-block}.inline-logo-sm{max-height:none}.inline-logo-md{max-height:none}.inline-logo-lg{max-height:none}
-        img[src*="logo"],.inline-logo,.logo-img{background:transparent!important;border:none!important;box-shadow:none!important}
-        @media print{.sidebar,.btn,.toast,.search-container,.form-grid,.header-btn-group{display:none!important}.main-content{margin-left:0!important}.card{box-shadow:none!important;border:1px solid #ddd!important}body{background:white!important}}
-        @media(max-width:768px){.sidebar{position:relative;width:100%;height:auto}.main-content{margin-left:0}}
-    .logo-display{max-height:none!important;width:auto!important}.footer-logo{max-height:none!important}
-</style>
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        @media(max-width:768px){.container{padding:1rem}.form-row{grid-template-columns:1fr}}
+    </style>
 </head>
 <body>
-<div class="sidebar">
-    <div class="logo">
-        
-        <div class="logo-text"><span style="color:#ffa502">Milestone</span> School Management System</div>
-    </div>
-    <nav>
-        <a class="active" onclick="showSection('dashboard')" title="Dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
-        <a onclick="showSection('schools')" title="Schools"><i class="fas fa-school"></i> Schools</a>
-        <a onclick="showSection('licenses')" title="Codes"><i class="fas fa-key"></i> Activation Codes</a>
-        <a onclick="showSection('export')" title="Export"><i class="fas fa-download"></i> Export</a>
-    </nav>
-</div>
-<div class="main-content">
-    <div class="top-bar">
-        <h2>Programmer Dashboard</h2>
-        <div class="header-btn-group">
-            <button class="btn-sm" onclick="window.print()" style="background:#95a5a6" title="Print"><i class="fas fa-print"></i></button>
-            <button class="btn-sm" onclick="toggleDarkMode()" style="background:#555" title="Dark Mode"><i class="fas fa-moon"></i></button>
+<div class="container">
+    <!-- LOGIN SECTION -->
+    <div id="loginSection">
+        <div class="card" style="max-width:450px;margin:50px auto">
+            <div class="header">
+                <h1>🔐 Admin Login</h1>
+                <p style="color:var(--text2)">Milestone SMS - Programmer Access</p>
+            </div>
+            <div id="loginError" class="error-box" style="display:none"></div>
+            <div class="form-group"><label>🔑 Admin Key</label><input type="password" id="adminKey" placeholder="Enter admin key" style="font-family:'Courier New',monospace;font-size:1.1rem;text-align:center;letter-spacing:2px"></div>
+            <button class="btn" onclick="adminLogin()">🔓 Access Admin Panel →</button>
+            <p style="text-align:center;margin-top:1rem;color:var(--text2);font-size:.8rem">Default key: admin2024</p>
         </div>
     </div>
-    <div id="dashboardSection">
+
+    <!-- DASHBOARD SECTION -->
+    <div id="dashboardSection" style="display:none">
+        <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+                <h2 style="color:#ffa502">⚙️ Admin Dashboard</h2>
+                <button class="btn-danger btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-number" id="totalSchools">0</div><div class="stat-label">Total Schools</div></div>
-            <div class="stat-card"><div class="stat-number" id="activeSchools">0</div><div class="stat-label">Active Licenses</div></div>
-            <div class="stat-card"><div class="stat-number" id="inactiveSchools">0</div><div class="stat-label">Pending Activation</div></div>
-            <div class="stat-card"><div class="stat-number" id="totalTeachers">0</div><div class="stat-label">Teachers</div></div>
+            <div class="stat-card"><div class="stat-number" id="activeSchools">0</div><div class="stat-label">Active Schools</div></div>
             <div class="stat-card"><div class="stat-number" id="totalStudents">0</div><div class="stat-label">Students</div></div>
+            <div class="stat-card"><div class="stat-number" id="totalTeachers">0</div><div class="stat-label">Teachers</div></div>
         </div>
-        <div class="card"><h2>📈 Recent Activity</h2><div id="recentActivity"></div></div>
-        <div class="card"><h2>⚠️ Expiring Soon (30 Days)</h2><div id="expiringLicenses"></div></div>
-    </div>
-    <div id="schoolsSection" style="display:none">
-        <div class="card"><h2>➕ Register New School</h2>
-            <div class="form-grid">
-                <div class="form-group"><label>🏫 School Name *</label><input type="text" id="schoolName" placeholder="e.g., Ghana High School"></div>
-                <div class="form-group"><label>👤 Headmaster Name *</label><input type="text" id="headmasterName" placeholder="Full name"></div>
-                <div class="form-group"><label>📧 Headmaster Email *</label><input type="email" id="headmasterEmail" placeholder="headmaster@school.edu.gh"></div>
-                <div class="form-group"><label>📞 Phone</label><input type="tel" id="headmasterPhone" placeholder="024xxxxxxx"></div>
-                <div class="form-group"><label>📅 License Duration</label><select id="licenseDuration"><option value="30">1 Month</option><option value="90" selected>3 Months</option><option value="180">6 Months</option><option value="365">1 Year</option></select></div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('register')">🏫 Register School</button>
+                <button class="tab" onclick="showTab('schools')">📋 All Schools</button>
+                <button class="tab" onclick="showTab('feedback')">💬 Feedback</button>
             </div>
-            <button class="btn" onclick="registerSchool()">🏫 Register & Generate Code</button>
-            <div id="registrationResult" style="margin-top:1rem"></div>
-        </div>
-        <div class="card"><h2>📋 All Registered Schools</h2>
-            <div class="search-container">
-                <input type="text" id="schoolSearchInput" class="search-input" placeholder="🔍 Search schools..." onkeyup="searchSchools()">
-                <button class="search-btn" onclick="searchSchools()" title="Search"><i class="fas fa-search"></i></button>
-                <button class="clear-search" id="clearSchoolSearch" onclick="clearSchoolSearch()" title="Clear">✕</button>
-                <select id="schoolFilterStatus" onchange="searchSchools()" style="padding:.7rem;border:1px solid var(--input-border);border-radius:.5rem;background:var(--input-bg);color:var(--text)"><option value="all">All Status</option><option value="active">Active Only</option><option value="inactive">Inactive Only</option></select>
+
+            <!-- Register School Tab -->
+            <div id="registerTab">
+                <h3 style="color:#ffa502;margin-bottom:1rem">Generate Activation Code</h3>
+                <div class="form-row">
+                    <div class="form-group"><label>🏫 School Name *</label><input type="text" id="schoolName" placeholder="Enter school name"></div>
+                    <div class="form-group"><label>📍 Location</label><input type="text" id="schoolLocation" placeholder="City/Region"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label>📅 License Duration (Days)</label>
+                        <select id="licenseDuration">
+                            <option value="30">30 Days (1 Month)</option>
+                            <option value="90">90 Days (3 Months)</option>
+                            <option value="180">180 Days (6 Months)</option>
+                            <option value="365" selected>365 Days (1 Year)</option>
+                            <option value="730">730 Days (2 Years)</option>
+                        </select>
+                    </div>
+                    <div class="form-group"><label>🎫 Activation Code</label><input type="text" id="customCode" placeholder="Auto-generated if empty" style="font-family:'Courier New',monospace"></div>
+                </div>
+                <button class="btn" onclick="registerSchool()">🎫 Generate & Register School</button>
+                <div id="generatedCode" class="code-display" style="display:none"></div>
+                <div id="registerError" class="error-box" style="display:none"></div>
+                <div id="registerSuccess" class="success-box" style="display:none"></div>
             </div>
-            <div id="searchStats" class="search-stats"></div>
-            <table id="schoolsTable"><thead><tr><th>School</th><th>Code</th><th>Headmaster</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead><tbody id="schoolsTableBody"></tbody></table>
-        </div>
-    </div>
-    <div id="licensesSection" style="display:none">
-        <div class="card"><h2>🔑 Pending Activation Codes</h2><div id="pendingLicenses"></div></div>
-        <div class="card"><h2>✅ Active Licenses</h2><div id="activeLicenses"></div></div>
-    </div>
-    <div id="exportSection" style="display:none">
-        <div class="card"><h2>📥 Export Data</h2>
-            <div class="btn-group">
-                <button class="btn" onclick="exportJSON()" title="Export as JSON">📊 Export JSON</button>
-                <button class="btn btn-success" onclick="exportCSV()" title="Export as CSV">📈 Export CSV</button>
-                <button class="btn btn-warning" onclick="clearAll()" title="Clear all data">⚠️ Clear All Data</button>
+
+            <!-- All Schools Tab -->
+            <div id="schoolsTab" style="display:none">
+                <h3 style="color:#ffa502;margin-bottom:1rem">All Registered Schools</h3>
+                <div class="search-container">
+                    <input type="text" id="schoolSearch" class="search-input" placeholder="🔍 Search schools..." onkeyup="loadSchools()">
+                </div>
+                <table>
+                    <thead><tr><th>School</th><th>Code</th><th>Location</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody id="schoolsTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Feedback Tab -->
+            <div id="feedbackTab" style="display:none">
+                <h3 style="color:#ffa502;margin-bottom:1rem">User Feedback</h3>
+                <div id="feedbackList"></div>
             </div>
         </div>
-    </div>
-    <div class="brand-footer">
-        
-        © 2024 <span style="color:#c8960a">Milestone School Management System</span> • Powered by <span style="color:#c8960a">Milestone Initiative</span>
     </div>
 </div>
 <div id="toast"></div>
 
 <script>
-let schools=[],search='',filter='all',inactivityTimer;
-function hashPassword(pw){const s='SchoolSync_GH_2024';return btoa(btoa(pw+s).split('').reverse().join('')+s)}
-function toggleDarkMode(){document.body.classList.toggle('dark-mode');localStorage.setItem('darkMode',document.body.classList.contains('dark-mode'))}
-if(localStorage.getItem('darkMode')==='true')document.body.classList.add('dark-mode');
-function resetTimer(){clearTimeout(inactivityTimer);inactivityTimer=setTimeout(()=>{alert('⚠️ Logged out due to 30 min inactivity.');location.reload()},30*60*1000)}
-['mousemove','keypress','click','scroll','touchstart'].forEach(e=>document.addEventListener(e,resetTimer));resetTimer();
+const ADMIN_KEY = 'admin4320'; // Change this to your secure key
 
-function loadData(){const s=localStorage.getItem('schoolsync_all_schools');if(s)schools=JSON.parse(s);updateUI()}
-function saveData(){localStorage.setItem('schoolsync_all_schools',JSON.stringify(schools))}
-function generateCode(n){return n.substring(0,4).toUpperCase().replace(/[^A-Z]/g,'X')+'-'+new Date().getFullYear()+'-'+Math.random().toString(36).substring(2,6).toUpperCase()+'-'+Math.random().toString(36).substring(2,6).toUpperCase()}
-function registerSchool(){const n=document.getElementById('schoolName').value.trim(),hn=document.getElementById('headmasterName').value.trim(),he=document.getElementById('headmasterEmail').value.trim(),hp=document.getElementById('headmasterPhone').value.trim(),d=parseInt(document.getElementById('licenseDuration').value);if(!n||!he||!hn){showToast('⚠️ Fill all required fields');return}if(schools.find(s=>s.name.toLowerCase()===n.toLowerCase())){showToast('❌ School already exists');return}const c=generateCode(n);schools.push({id:'sch_'+Date.now(),name:n,activationCode:c,isActive:false,licenseExpiry:null,licenseDuration:d,headmaster:{name:hn,email:he,phone:hp,password:hashPassword('headmaster123')},teachers:[],createdAt:new Date().toISOString()});saveData();initEmptyData(n);updateUI();document.getElementById('registrationResult').innerHTML=`<div style="background:#e8f5e9;padding:1.5rem;border-radius:.5rem;border-left:4px solid #2ecc71;"><h3>✅ School Registered!</h3><p><strong>School:</strong> ${escapeHtml(n)}</p><p><strong>Activation Code:</strong> <code style="font-size:1.1rem">${c}</code></p><p style="color:#666">Share this code with the headmaster for activation.</p></div>`;['schoolName','headmasterName','headmasterEmail','headmasterPhone'].forEach(id=>document.getElementById(id).value='');showToast('✅ School registered!')}
-function initEmptyData(n){const k='schoolsync_data_'+n.toLowerCase().replace(/[^a-z]/g,'');if(!localStorage.getItem(k))localStorage.setItem(k,JSON.stringify({studentIdConfig:{prefix:'STU',nextNumber:1},programmes:[],subjects:[],students:[],scores:[],assessmentWeights:{caWeight:30,examWeight:70,quizWeight:40,exerciseWeight:30,projectWeight:30}}))}
-function searchSchools(){search=document.getElementById('schoolSearchInput').value.trim().toLowerCase();filter=document.getElementById('schoolFilterStatus').value;document.getElementById('clearSchoolSearch').style.display=search?'inline-block':'none';updateSchoolsTable()}
-function clearSchoolSearch(){document.getElementById('schoolSearchInput').value='';search='';document.getElementById('clearSchoolSearch').style.display='none';updateSchoolsTable()}
-function getFiltered(){let f=[...schools];if(filter==='active')f=f.filter(s=>s.isActive);else if(filter==='inactive')f=f.filter(s=>!s.isActive);if(search)f=f.filter(s=>s.name.toLowerCase().includes(search)||s.activationCode.toLowerCase().includes(search)||s.headmaster.email.toLowerCase().includes(search));return f.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt))}
-function updateUI(){document.getElementById('totalSchools').innerText=schools.length;document.getElementById('activeSchools').innerText=schools.filter(s=>s.isActive).length;document.getElementById('inactiveSchools').innerText=schools.filter(s=>!s.isActive).length;let tc=0,sc=0;schools.forEach(s=>{tc+=s.teachers?.length||0;const k='schoolsync_data_'+s.name.toLowerCase().replace(/[^a-z]/g,'');const d=JSON.parse(localStorage.getItem(k)||'{}');sc+=d.students?.length||0});document.getElementById('totalTeachers').innerText=tc;document.getElementById('totalStudents').innerText=sc;updateSchoolsTable();updatePending();updateActive();updateActivity();updateExpiring()}
-function updateSchoolsTable(){const f=getFiltered(),tb=document.getElementById('schoolsTableBody');document.getElementById('searchStats').innerHTML=(search||filter!=='all')?`Showing <strong>${f.length}</strong> of <strong>${schools.length}</strong> schools`:`Total: <strong>${schools.length}</strong> schools`;if(!f.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem">No schools found</td></tr>';return}tb.innerHTML=f.map(s=>`<tr><td><strong>${hl(s.name)}</strong></td><td><span class="code-display">${hl(s.activationCode)}</span></td><td>${hl(s.headmaster.name)}<br><small>${hl(s.headmaster.email)}</small></td><td>${s.licenseExpiry?new Date(s.licenseExpiry).toLocaleDateString():'<span style="color:#999">Not activated</span>'}</td><td><span class="status-badge ${s.isActive?'status-active':'status-inactive'}">${s.isActive?'✓ Active':'⏳ Pending'}</span></td><td><div class="btn-group"><button class="btn btn-sm" onclick="copyCode('${s.activationCode}')" title="Copy code">📋</button>${!s.isActive?`<button class="btn btn-sm btn-success" onclick="forceActivate('${s.id}')" title="Activate">🔓</button>`:''}<button class="btn btn-sm btn-warning" onclick="renewLicense('${s.id}')" title="Renew">🔄</button><button class="btn btn-sm btn-danger" onclick="deleteSchool('${s.id}')" title="Delete">🗑</button></div></td></tr>`).join('')}
-function forceActivate(id){const s=schools.find(s=>s.id===id);if(s){s.isActive=true;s.licenseExpiry=new Date(Date.now()+s.licenseDuration*24*60*60*1000).toISOString();saveData();updateUI();showToast('🔓 School activated!')}}
-function renewLicense(id){const s=schools.find(s=>s.id===id);if(s){const d=prompt('Days to renew:','365');if(d&&!isNaN(d)){const e=s.licenseExpiry?new Date(s.licenseExpiry):new Date();e.setDate(e.getDate()+parseInt(d));s.licenseExpiry=e.toISOString();s.isActive=true;saveData();updateUI();showToast('🔄 License renewed!')}}}
-function copyCode(c){navigator.clipboard.writeText(c).then(()=>showToast('📋 Code copied!'))}
-function updatePending(){const c=document.getElementById('pendingLicenses'),ia=schools.filter(s=>!s.isActive);c.innerHTML=ia.length?`<table><thead><tr><th>School</th><th>Code</th><th>Email</th><th>Action</th></tr></thead><tbody>${ia.map(s=>`<tr><td><strong>${escapeHtml(s.name)}</strong></td><td><span class="code-display">${s.activationCode}</span></td><td>${escapeHtml(s.headmaster.email)}</td><td><button class="btn btn-sm" onclick="copyCode('${s.activationCode}')">📋</button><button class="btn btn-sm btn-success" onclick="forceActivate('${s.id}')">🔓</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty-state">✅ All schools activated!</div>'}
-function updateActive(){const c=document.getElementById('activeLicenses'),a=schools.filter(s=>s.isActive);c.innerHTML=a.length?`<table><thead><tr><th>School</th><th>Code</th><th>Expiry</th><th>Days Left</th></tr></thead><tbody>${a.map(s=>{const dl=Math.ceil((new Date(s.licenseExpiry)-new Date())/(1000*60*60*24));return`<tr><td><strong>${escapeHtml(s.name)}</strong></td><td><span class="code-display">${s.activationCode}</span></td><td>${new Date(s.licenseExpiry).toLocaleDateString()}</td><td style="color:${dl<=30?'#e74c3c':'#27ae60'};font-weight:bold">${dl} days</td></tr>`}).join('')}</tbody></table>`:'<div class="empty-state">No active licenses yet</div>'}
-function updateActivity(){const c=document.getElementById('recentActivity');c.innerHTML=schools.length?[...schools].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,10).map(s=>`<div style="padding:.8rem 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><div><strong>${escapeHtml(s.name)}</strong><span class="status-badge ${s.isActive?'status-active':'status-inactive'}" style="margin-left:.5rem">${s.isActive?'Active':'Pending'}</span></div><small>${new Date(s.createdAt).toLocaleDateString()}</small></div>`).join(''):'<div class="empty-state">No schools registered yet</div>'}
-function updateExpiring(){const c=document.getElementById('expiringLicenses'),t=new Date(Date.now()+30*24*60*60*1000),e=schools.filter(s=>s.isActive&&new Date(s.licenseExpiry)<=t);c.innerHTML=e.length?`<table><thead><tr><th>School</th><th>Expiry</th><th>Days</th><th>Action</th></tr></thead><tbody>${e.map(s=>{const dl=Math.ceil((new Date(s.licenseExpiry)-new Date())/(1000*60*60*24));return`<tr><td><strong>${escapeHtml(s.name)}</strong></td><td>${new Date(s.licenseExpiry).toLocaleDateString()}</td><td style="color:#e74c3c;font-weight:bold">${dl} days</td><td><button class="btn btn-sm btn-warning" onclick="renewLicense('${s.id}')">🔄</button></td></tr>`}).join('')}</tbody></table>`:'<div class="empty-state">✅ No licenses expiring soon</div>'}
-function deleteSchool(id){const s=schools.find(s=>s.id===id);if(s&&confirm(`⚠️ Delete "${s.name}" permanently?`)){localStorage.removeItem('schoolsync_data_'+s.name.toLowerCase().replace(/[^a-z]/g,''));schools=schools.filter(s=>s.id!==id);saveData();updateUI();showToast('🗑 School deleted')}}
-function exportJSON(){const d={date:new Date().toISOString(),schools:schools.map(s=>({...s,headmaster:{...s.headmaster,password:'****'},teachers:s.teachers?.map(t=>({...t,password:'****'}))}))};const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='milestone_export_'+new Date().toISOString().split('T')[0]+'.json';a.click();showToast('📥 JSON exported!')}
-function exportCSV(){let csv='School,Code,Status,Headmaster,Email,Teachers\n';schools.forEach(s=>csv+=`"${s.name}","${s.activationCode}","${s.isActive?'Active':'Inactive'}","${s.headmaster.name}","${s.headmaster.email}","${s.teachers?.length||0}"\n`);const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='milestone_summary_'+new Date().toISOString().split('T')[0]+'.csv';a.click();showToast('📈 CSV exported!')}
-function clearAll(){if(confirm('⚠️⚠️ Delete ALL data? This cannot be undone!')){if(confirm('Type DELETE to confirm:')){localStorage.clear();schools=[];updateUI();showToast('🗑 All data cleared')}}}
-function hl(t){if(!search||!t)return escapeHtml(t);const r=new RegExp('('+search.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');return escapeHtml(t).replace(r,'<span class="highlight">$1</span>')}
-function showSection(s){['dashboard','schools','licenses','export'].forEach(x=>{const el=document.getElementById(x+'Section');if(el)el.style.display='none'});const el=document.getElementById(s+'Section');if(el)el.style.display='block';document.querySelectorAll('.sidebar nav a').forEach(a=>a.classList.remove('active'));if(event&&event.target)event.target.classList.add('active');if(s==='licenses'||s==='dashboard')updateUI()}
-function escapeHtml(s){if(!s)return'';const d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
-function showToast(m){const t=document.getElementById('toast');t.innerHTML=m;t.classList.add('toast');setTimeout(()=>t.classList.remove('toast'),3000)}
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerHTML = msg;
+    t.classList.add('toast');
+    setTimeout(() => t.classList.remove('toast'), 3000);
+}
 
-loadData();
-window.registerSchool=registerSchool;window.deleteSchool=deleteSchool;window.showSection=showSection;window.copyCode=copyCode;window.forceActivate=forceActivate;window.renewLicense=renewLicense;window.searchSchools=searchSchools;window.clearSchoolSearch=clearSchoolSearch;window.exportJSON=exportJSON;window.exportCSV=exportCSV;window.clearAll=clearAll;window.toggleDarkMode=toggleDarkMode;
+function generateActivationCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+        for (let j = 0; j < 4; j++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        if (i < 3) code += '-';
+    }
+    return code;
+}
+
+// Admin Login
+function adminLogin() {
+    const key = document.getElementById('adminKey').value;
+    const err = document.getElementById('loginError');
+    
+    if (key === ADMIN_KEY) {
+        sessionStorage.setItem('admin_logged_in', 'true');
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+        loadStats();
+        loadSchools();
+        showToast('✅ Welcome Admin!');
+    } else {
+        err.innerHTML = '❌ Invalid admin key';
+        err.style.display = 'block';
+    }
+}
+
+// Load Stats
+async function loadStats() {
+    const { count: totalSchools } = await supabase.from('schools').select('*', { count: 'exact', head: true });
+    document.getElementById('totalSchools').innerText = totalSchools || 0;
+    
+    const { count: activeSchools } = await supabase.from('schools').select('*', { count: 'exact', head: true }).eq('is_active', true);
+    document.getElementById('activeSchools').innerText = activeSchools || 0;
+    
+    const { count: totalStudents } = await supabase.from('students').select('*', { count: 'exact', head: true });
+    document.getElementById('totalStudents').innerText = totalStudents || 0;
+    
+    const { count: totalTeachers } = await supabase.from('teachers').select('*', { count: 'exact', head: true });
+    document.getElementById('totalTeachers').innerText = totalTeachers || 0;
+}
+
+// Register School
+async function registerSchool() {
+    const name = document.getElementById('schoolName').value.trim();
+    const location = document.getElementById('schoolLocation').value.trim();
+    const duration = parseInt(document.getElementById('licenseDuration').value);
+    let code = document.getElementById('customCode').value.trim().toUpperCase();
+    const errDiv = document.getElementById('registerError');
+    const succDiv = document.getElementById('registerSuccess');
+    const codeDiv = document.getElementById('generatedCode');
+    
+    errDiv.style.display = 'none';
+    succDiv.style.display = 'none';
+    codeDiv.style.display = 'none';
+    
+    if (!name) {
+        errDiv.innerHTML = '❌ School name is required';
+        errDiv.style.display = 'block';
+        return;
+    }
+    
+    // Generate code if not provided
+    if (!code) {
+        code = generateActivationCode();
+    }
+    
+    // Check if code already exists
+    const { data: existing } = await supabase.from('schools').select('id').eq('activation_code', code);
+    if (existing && existing.length > 0) {
+        errDiv.innerHTML = '❌ Activation code already exists. Generate a new one.';
+        errDiv.style.display = 'block';
+        return;
+    }
+    
+    // Insert school
+    const { error } = await supabase.from('schools').insert([{
+        name: name,
+        activation_code: code,
+        license_duration: duration,
+        is_active: false
+    }]);
+    
+    if (error) {
+        errDiv.innerHTML = '❌ Failed to register school: ' + error.message;
+        errDiv.style.display = 'block';
+        return;
+    }
+    
+    // Show the generated code
+    codeDiv.innerHTML = `🎫 Activation Code: <strong>${code}</strong>`;
+    codeDiv.style.display = 'block';
+    succDiv.innerHTML = `✅ School "${name}" registered successfully!<br>Give this code to the headmaster: <strong>${code}</strong><br>License: ${duration} days`;
+    succDiv.style.display = 'block';
+    
+    document.getElementById('schoolName').value = '';
+    document.getElementById('schoolLocation').value = '';
+    document.getElementById('customCode').value = '';
+    
+    await loadStats();
+    await loadSchools();
+}
+
+// Load Schools
+async function loadSchools() {
+    const search = document.getElementById('schoolSearch')?.value.trim().toLowerCase() || '';
+    let query = supabase.from('schools').select('*').order('created_at', { ascending: false });
+    
+    if (search) {
+        query = query.ilike('name', `%${search}%`);
+    }
+    
+    const { data: schools } = await query;
+    const tbody = document.getElementById('schoolsTableBody');
+    
+    if (!schools || schools.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No schools registered</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = schools.map(s => {
+        let statusClass = 'status-inactive';
+        let statusText = 'Inactive';
+        
+        if (s.is_active) {
+            const now = new Date();
+            const expiry = new Date(s.license_expiry);
+            if (expiry < now) {
+                statusClass = 'status-expired';
+                statusText = 'Expired';
+            } else {
+                statusClass = 'status-active';
+                statusText = 'Active';
+            }
+        }
+        
+        return `
+            <tr>
+                <td><strong>${s.name}</strong></td>
+                <td><code style="color:#ffa502">${s.activation_code}</code></td>
+                <td>${s.location || '—'}</td>
+                <td>${s.license_expiry ? new Date(s.license_expiry).toLocaleDateString() : 'Not activated'}</td>
+                <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                <td>
+                    <button class="btn-sm btn-outline" onclick="viewSchool('${s.id}')" title="View"><i class="fas fa-eye"></i></button>
+                    <button class="btn-sm" style="background:#e74c3c;color:white" onclick="deleteSchool(${s.id}, '${s.name}')" title="Delete"><i class="fas fa-trash"></i></button>
+                    ${!s.is_active ? `<button class="btn-sm" style="background:#2ecc71;color:white" onclick="regenerateCode(${s.id}, '${s.name}')" title="New Code"><i class="fas fa-key"></i></button>` : ''}
+                </td>
+            </tr>`;
+    }).join('');
+}
+
+// View School Details
+async function viewSchool(id) {
+    const { data: school } = await supabase.from('schools').select('*').eq('id', id).single();
+    if (!school) return;
+    
+    const { data: students } = await supabase.from('students').select('id', { count: 'exact', head: true }).eq('school_id', id);
+    const { data: teachers } = await supabase.from('teachers').select('id', { count: 'exact', head: true }).eq('school_id', id);
+    const { data: programmes } = await supabase.from('programmes').select('id', { count: 'exact', head: true }).eq('school_id', id);
+    
+    alert(`
+🏫 ${school.name}
+📍 ${school.location || 'N/A'}
+🎫 Code: ${school.activation_code}
+📅 Created: ${new Date(school.created_at).toLocaleDateString()}
+${school.is_active ? `
+✅ Active
+📅 Expires: ${new Date(school.license_expiry).toLocaleDateString()}
+👨‍🏫 Teachers: ${teachers || 0}
+👨‍🎓 Students: ${students || 0}
+📚 Programmes: ${programmes || 0}
+` : '⏳ Not yet activated'}
+    `.trim());
+}
+
+// Delete School
+async function deleteSchool(id, name) {
+    if (!confirm(`Delete "${name}"? This will remove ALL data for this school!`)) return;
+    if (!confirm('Are you SURE? This cannot be undone!')) return;
+    
+    await supabase.from('scores').delete().eq('school_id', id);
+    await supabase.from('enrollments').delete().eq('student_id', id);
+    await supabase.from('students').delete().eq('school_id', id);
+    await supabase.from('subjects').delete().eq('school_id', id);
+    await supabase.from('programmes').delete().eq('school_id', id);
+    await supabase.from('teachers').delete().eq('school_id', id);
+    await supabase.from('headmasters').delete().eq('school_id', id);
+    await supabase.from('schools').delete().eq('id', id);
+    
+    showToast('🗑 School deleted');
+    await loadStats();
+    await loadSchools();
+}
+
+// Regenerate Code
+async function regenerateCode(id, name) {
+    if (!confirm(`Generate new activation code for "${name}"?`)) return;
+    
+    const newCode = generateActivationCode();
+    
+    await supabase.from('schools').update({ activation_code: newCode }).eq('id', id);
+    
+    alert(`✅ New activation code for ${name}:\n\n${newCode}`);
+    await loadSchools();
+}
+
+// Load Feedback
+async function loadFeedback() {
+    const container = document.getElementById('feedbackList');
+    
+    const { data: feedback } = await supabase.from('feedback').select('*').order('created_at', { ascending: false });
+    
+    if (!feedback || feedback.length === 0) {
+        container.innerHTML = '<p style="color:var(--text2)">No feedback received</p>';
+        return;
+    }
+    
+    container.innerHTML = feedback.map(f => `
+        <div class="card" style="margin-bottom:1rem;padding:1.5rem">
+            <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+                <strong>${f.name}</strong>
+                <small style="color:var(--text2)">${new Date(f.created_at).toLocaleString()}</small>
+            </div>
+            ${f.email ? `<p style="color:#ffa502;font-size:.9rem">📧 ${f.email}</p>` : ''}
+            ${f.subject ? `<p style="color:var(--text2);font-size:.9rem">📌 ${f.subject}</p>` : ''}
+            <p style="margin-top:.5rem;line-height:1.6">${f.message}</p>
+        </div>
+    `).join('');
+}
+
+// Tab Switching
+function showTab(tab) {
+    ['register', 'schools', 'feedback'].forEach(t => {
+        document.getElementById(t + 'Tab').style.display = 'none';
+    });
+    document.getElementById(tab + 'Tab').style.display = 'block';
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    if (tab === 'feedback') loadFeedback();
+    if (tab === 'schools') loadSchools();
+}
+
+// Logout
+function logout() {
+    sessionStorage.removeItem('admin_logged_in');
+    document.getElementById('dashboardSection').style.display = 'none';
+    document.getElementById('loginSection').style.display = 'block';
+    document.getElementById('adminKey').value = '';
+    showToast('👋 Logged out');
+}
+
+// Check session
+async function checkSession() {
+    if (sessionStorage.getItem('admin_logged_in') === 'true') {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+        await loadStats();
+        await loadSchools();
+    }
+}
+
+checkSession();
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
