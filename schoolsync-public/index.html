@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Milestone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{
-            font-family:'Segoe UI',sans-serif;
+            font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
             background:linear-gradient(225deg,#8db355,#e0c87a);
             min-height:100vh;
             display:flex;
@@ -44,8 +46,6 @@
             transition:transform 0.5s ease;
             animation:pulse 3s infinite;
             filter:drop-shadow(0 10px 30px rgba(0,0,0,0.4)) brightness(1.15) contrast(1.1);
-            image-rendering:-webkit-optimize-contrast;
-            image-rendering:crisp-edges;
         }
         .splash-container:hover img{transform:scale(1.08)}
         .splash-hint{
@@ -53,6 +53,8 @@
             font-size:1rem;
             margin-top:2rem;
             animation:fadeIn 2s ease 1s both;
+            font-weight:500;
+            letter-spacing:0.5px;
         }
         .splash-hint i{animation:bounce 1.5s infinite}
         @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
@@ -63,7 +65,7 @@
 </head>
 <body onclick="location.href='home.html'">
     <div class="splash-container">
-        <img src="assets/logo.png" alt="Milestone" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=font-size:5rem;color:#c8960a;animation:pulse 3s infinite;font-weight:bold;text-shadow:0 5px 20px rgba(0,0,0,0.5)>MILESTONE</div>'">
+        <img src="assets/logo.png" alt="Milestone" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=font-size:5rem;color:#c8960a;animation:pulse 3s infinite;font-weight:800;text-shadow:0 5px 20px rgba(0,0,0,0.5);letter-spacing:-2px>MILESTONE</div>'">
         <p class="splash-hint">Click anywhere to enter <i class="fas fa-arrow-right"></i></p>
     </div>
 </body>
