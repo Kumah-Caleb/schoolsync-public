@@ -83,7 +83,7 @@
             <div class="form-group"><label>🔑 Activation Code</label><input type="text" id="activationCodeInput" placeholder="XXXX-YYYY-ZZZZ" style="font-family:'Courier New',monospace;font-size:clamp(1rem,1.5vw,1.2rem);text-align:center;letter-spacing:2px"></div>
             <div class="form-group"><label>🔒 Password</label><input type="password" id="activationPassword" placeholder="Min 6 chars"></div>
             <div class="form-group"><label>🔒 Confirm Password</label><input type="password" id="activationConfirmPassword" placeholder="Confirm"></div>
-            <button class="btn" onclick="activateSchool()">🔓 Activate License →</button>
+            <button class="btn" onclick="activateSchool()" ontouchend="activateSchool()"></button>🔓 Activate License →</button>
             <div style="text-align:center;margin-top:1.5rem"><a href="#" onclick="showLogin()" style="color:#c8960a;text-decoration:none;font-weight:600;font-size:clamp(0.8rem,1.1vw,0.9rem)">Already have account? Login →</a></div>
         </div>
     </div>
@@ -178,21 +178,53 @@ function showLogin(){document.getElementById('activationSection').style.display=
 function showActivation(){document.getElementById('loginSection').style.display='none';document.getElementById('activationSection').style.display='block';document.getElementById('dashboardSection').style.display='none'}
 
 async function activateSchool(){
-    const name=document.getElementById('activationSchoolName').value.trim(),email=document.getElementById('activationEmail').value.trim(),headmasterName=document.getElementById('activationName').value.trim(),phone=document.getElementById('activationPhone').value.trim(),code=document.getElementById('activationCodeInput').value.trim().toUpperCase(),pw=document.getElementById('activationPassword').value,cpw=document.getElementById('activationConfirmPassword').value,err=document.getElementById('activationError'),succ=document.getElementById('activationSuccess');
+    console.log('Activate clicked');
+    
+    if (typeof supabase === 'undefined') {
+        document.getElementById('activationError').innerHTML = '❌ System not loaded. Please refresh.';
+        document.getElementById('activationError').style.display = 'block';
+        return;
+    }
+    
+    const name=document.getElementById('activationSchoolName').value.trim();
+    const email=document.getElementById('activationEmail').value.trim();
+    const headmasterName=document.getElementById('activationName').value.trim();
+    const phone=document.getElementById('activationPhone').value.trim();
+    const code=document.getElementById('activationCodeInput').value.trim().toUpperCase();
+    const pw=document.getElementById('activationPassword').value;
+    const cpw=document.getElementById('activationConfirmPassword').value;
+    const err=document.getElementById('activationError');
+    const succ=document.getElementById('activationSuccess');
+    
     err.style.display='none';succ.style.display='none';
+    
     if(!name||!email||!headmasterName||!code||!pw){err.innerHTML='❌ Fill all fields';err.style.display='block';return}
     if(pw!==cpw){err.innerHTML='❌ Passwords mismatch';err.style.display='block';return}
     if(pw.length<6){err.innerHTML='❌ Password must be 6+ characters';err.style.display='block';return}
-    const{data:school,error:schoolError}=await supabase.from('schools').select('*').eq('activation_code',code).single();
-    if(schoolError||!school){err.innerHTML='❌ Invalid activation code';err.style.display='block';return}
-    if(school.is_active){err.innerHTML='❌ School already activated. <a href="#" onclick="showLogin()">Login</a>';err.style.display='block';return}
-    if(school.name.toLowerCase()!==name.toLowerCase()){err.innerHTML=`❌ Name mismatch. Code is for "${school.name}"`;err.style.display='block';return}
-    const expiry=new Date(Date.now()+school.license_duration*24*60*60*1000).toISOString();
-    await supabase.from('schools').update({is_active:true,license_expiry:expiry}).eq('id',school.id);
-    const{error:headError}=await supabase.from('headmasters').insert([{school_id:school.id,name:headmasterName,email:email,phone:phone,password:hashPassword(pw)}]);
-    if(headError){err.innerHTML='❌ Failed to create headmaster account';err.style.display='block';return}
-    succ.innerHTML='✅ School activated successfully! Redirecting...';succ.style.display='block';
-    setTimeout(()=>{showLogin();document.getElementById('loginEmail').value=email},2000);
+    
+    try{
+        const{data:school,error:schoolError}=await supabase.from('schools').select('*').eq('activation_code',code).single();
+        
+        if(schoolError){err.innerHTML='❌ Connection error. Check your internet.';err.style.display='block';return}
+        if(!school){err.innerHTML='❌ Invalid activation code';err.style.display='block';return}
+        if(school.is_active){err.innerHTML='❌ School already activated. <a href="#" onclick="showLogin()">Login</a>';err.style.display='block';return}
+        if(school.name.toLowerCase()!==name.toLowerCase()){err.innerHTML=`❌ Name mismatch. Code is for "${school.name}"`;err.style.display='block';return}
+        
+        const expiry=new Date(Date.now()+school.license_duration*24*60*60*1000).toISOString();
+        await supabase.from('schools').update({is_active:true,license_expiry:expiry}).eq('id',school.id);
+        
+        const{error:headError}=await supabase.from('headmasters').insert([{school_id:school.id,name:headmasterName,email:email,phone:phone,password:hashPassword(pw)}]);
+        
+        if(headError){err.innerHTML='❌ Failed to create account';err.style.display='block';return}
+        
+        succ.innerHTML='✅ School activated! Redirecting...';succ.style.display='block';
+        setTimeout(()=>{showLogin();document.getElementById('loginEmail').value=email},2000);
+        
+    }catch(error){
+        console.log('Error:',error);
+        err.innerHTML='❌ Something went wrong. Please try again.';
+        err.style.display='block';
+    }
 }
 
 async function login(){
