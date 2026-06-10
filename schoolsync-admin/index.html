@@ -104,6 +104,7 @@
                     <div class="form-group"><label>📅 License Duration (Days)</label><select id="licenseDuration"><option value="30">30 Days (1 Month)</option><option value="90">90 Days (3 Months)</option><option value="180">180 Days (6 Months)</option><option value="365" selected>365 Days (1 Year)</option><option value="730">730 Days (2 Years)</option></select></div>
                     <div class="form-group"><label>🎫 Activation Code</label><input type="text" id="customCode" placeholder="Auto-generated if empty" style="font-family:'Courier New',monospace"></div>
                 </div>
+                <button class="btn" onclick="testAdminConnection()" style="background:red;color:white;margin-bottom:10px">🔴 TEST ADMIN DB</button>
                 <button class="btn" onclick="registerSchool()">🎫 Generate & Register School</button>
                 <div id="generatedCode" class="code-display" style="display:none"></div>
                 <div id="registerError" class="error-box" style="display:none"></div>
@@ -189,6 +190,20 @@ function logout(){sessionStorage.removeItem('admin_logged_in');document.getEleme
 
 async function checkSession(){if(sessionStorage.getItem('admin_logged_in')==='true'){document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';await loadStats();await loadSchools()}}
 checkSession();
+async function testAdminConnection(){
+    let msg='SB type: '+typeof sb+'\n';
+    try{
+        const{data,error}=await sb.from('schools').select('*').limit(1);
+        if(error){msg+='Error: '+error.message}else{msg+='Schools: '+data.length}
+    }catch(e){msg+='Catch: '+e.message}
+    alert(msg);
+    
+    // Try insert
+    try{
+        const{error}=await sb.from('schools').insert([{name:'TEST SCHOOL',activation_code:'TEST-'+Date.now(),license_duration:365,is_active:false}]);
+        if(error){alert('INSERT Error: '+error.message)}else{alert('✅ Test school inserted! Check Supabase.')}
+    }catch(e){alert('INSERT Catch: '+e.message)}
+}
 </script>
 </body>
 </html>
