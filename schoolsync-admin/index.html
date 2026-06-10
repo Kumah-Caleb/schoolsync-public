@@ -49,15 +49,8 @@
         .toast{position:fixed;bottom:20px;right:20px;background:#ffa502;color:#1a1a2e;padding:clamp(0.6rem,1vw,0.8rem) clamp(1rem,1.5vw,1.5rem);border-radius:2rem;z-index:1000;animation:slideIn .3s ease;font-weight:600;font-size:clamp(0.75rem,1vw,0.85rem);max-width:90vw}
         @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
         .form-row{display:grid;grid-template-columns:1fr 1fr;gap:clamp(0.5rem,1vw,1rem)}
-        @media(max-width:600px){
-            .container{padding:0.5rem}
-            .card{padding:1rem;border-radius:1rem}
-            .form-row{grid-template-columns:1fr}
-        }
-        @media(max-width:400px){
-            .tabs{gap:0.2rem}
-            .tab{padding:0.5rem 0.6rem;font-size:0.7rem}
-        }
+        @media(max-width:600px){.container{padding:0.5rem}.card{padding:1rem;border-radius:1rem}.form-row{grid-template-columns:1fr}}
+        @media(max-width:400px){.tabs{gap:0.2rem}.tab{padding:0.5rem 0.6rem;font-size:0.7rem}}
     </style>
 </head>
 <body>
@@ -79,21 +72,18 @@
                 <button class="btn-danger btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
             </div>
         </div>
-
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-number" id="totalSchools">0</div><div class="stat-label">Total Schools</div></div>
             <div class="stat-card"><div class="stat-number" id="activeSchools">0</div><div class="stat-label">Active Schools</div></div>
             <div class="stat-card"><div class="stat-number" id="totalStudents">0</div><div class="stat-label">Students</div></div>
             <div class="stat-card"><div class="stat-number" id="totalTeachers">0</div><div class="stat-label">Teachers</div></div>
         </div>
-
         <div class="card">
             <div class="tabs">
                 <button class="tab active" onclick="showTab('register')">🏫 Register School</button>
                 <button class="tab" onclick="showTab('schools')">📋 All Schools</button>
                 <button class="tab" onclick="showTab('feedback')">💬 Feedback</button>
             </div>
-
             <div id="registerTab">
                 <h3 style="color:#ffa502;margin-bottom:1rem;font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">Generate Activation Code</h3>
                 <div class="form-row">
@@ -110,15 +100,11 @@
                 <div id="registerError" class="error-box" style="display:none"></div>
                 <div id="registerSuccess" class="success-box" style="display:none"></div>
             </div>
-
             <div id="schoolsTab" style="display:none">
                 <h3 style="color:#ffa502;margin-bottom:1rem;font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">All Registered Schools</h3>
                 <div class="search-container"><input type="text" id="schoolSearch" class="search-input" placeholder="🔍 Search schools..." onkeyup="loadSchools()"></div>
-                <div class="table-wrapper">
-                    <table><thead><tr><th>School</th><th>Code</th><th>Location</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead><tbody id="schoolsTableBody"></tbody></table>
-                </div>
+                <div class="table-wrapper"><table><thead><tr><th>School</th><th>Code</th><th>Location</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead><tbody id="schoolsTableBody"></tbody></table></div>
             </div>
-
             <div id="feedbackTab" style="display:none">
                 <h3 style="color:#ffa502;margin-bottom:1rem;font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">User Feedback</h3>
                 <div id="feedbackList"></div>
@@ -127,13 +113,22 @@
     </div>
 </div>
 <div id="toast"></div>
-
 <script>
 const ADMIN_KEY='admin2024';
 function showToast(msg){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('toast');setTimeout(()=>t.classList.remove('toast'),3000)}
 function generateActivationCode(){const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';let code='';for(let i=0;i<4;i++){for(let j=0;j<4;j++){code+=chars.charAt(Math.floor(Math.random()*chars.length))}if(i<3)code+='-'}return code}
 
 function adminLogin(){const key=document.getElementById('adminKey').value,err=document.getElementById('loginError');if(key===ADMIN_KEY){sessionStorage.setItem('admin_logged_in','true');document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';loadStats();loadSchools();showToast('✅ Welcome Admin!')}else{err.innerHTML='❌ Invalid admin key';err.style.display='block'}}
+
+async function testAdminConnection(){
+    alert('SB type: '+typeof sb);
+    try{
+        const{data,error}=await sb.from('schools').select('*').limit(1);
+        if(error){alert('SELECT Error: '+error.message)}else{alert('Schools found: '+data.length)}
+        const{error:insertError}=await sb.from('schools').insert([{name:'DIRECT TEST',activation_code:'DIRECT-'+Date.now(),license_duration:365,is_active:false}]);
+        if(insertError){alert('INSERT Error: '+insertError.message)}else{alert('✅ Test school saved! Check Supabase.')}
+    }catch(e){alert('Catch: '+e.message)}
+}
 
 async function loadStats(){
     const{count:totalSchools}=await sb.from('schools').select('*',{count:'exact',head:true});document.getElementById('totalSchools').innerText=totalSchools||0;
@@ -143,18 +138,22 @@ async function loadStats(){
 }
 
 async function registerSchool(){
-    const name=document.getElementById('schoolName').value.trim(),location=document.getElementById('schoolLocation').value.trim(),duration=parseInt(document.getElementById('licenseDuration').value);
+    const name=document.getElementById('schoolName').value.trim();
+    const location=document.getElementById('schoolLocation').value.trim();
+    const duration=parseInt(document.getElementById('licenseDuration').value);
     let code=document.getElementById('customCode').value.trim().toUpperCase();
-    const errDiv=document.getElementById('registerError'),succDiv=document.getElementById('registerSuccess'),codeDiv=document.getElementById('generatedCode');
+    const errDiv=document.getElementById('registerError');
+    const succDiv=document.getElementById('registerSuccess');
+    const codeDiv=document.getElementById('generatedCode');
     errDiv.style.display='none';succDiv.style.display='none';codeDiv.style.display='none';
     if(!name){errDiv.innerHTML='❌ School name is required';errDiv.style.display='block';return}
     if(!code)code=generateActivationCode();
     const{data:existing}=await sb.from('schools').select('id').eq('activation_code',code);
     if(existing&&existing.length>0){errDiv.innerHTML='❌ Activation code already exists.';errDiv.style.display='block';return}
-    const{error}=await sb.from('schools').insert([{name,activation_code:code,license_duration:duration,is_active:false}]);
-    if(error){errDiv.innerHTML='❌ Failed to register school';errDiv.style.display='block';return}
-    codeDiv.innerHTML=`🎫 Activation Code: <strong>${code}</strong>`;codeDiv.style.display='block';
-    succDiv.innerHTML=`✅ "${name}" registered!<br>Code: <strong>${code}</strong><br>Duration: ${duration} days`;succDiv.style.display='block';
+    const{error}=await sb.from('schools').insert([{name:name,activation_code:code,license_duration:duration,is_active:false,location:location}]);
+    if(error){errDiv.innerHTML='❌ Failed: '+error.message;errDiv.style.display='block';return}
+    codeDiv.innerHTML='🎫 Activation Code: <strong>'+code+'</strong>';codeDiv.style.display='block';
+    succDiv.innerHTML='✅ "'+name+'" registered!<br>Code: <strong>'+code+'</strong><br>Duration: '+duration+' days';succDiv.style.display='block';
     document.getElementById('schoolName').value='';document.getElementById('schoolLocation').value='';document.getElementById('customCode').value='';
     await loadStats();await loadSchools();
 }
@@ -162,48 +161,58 @@ async function registerSchool(){
 async function loadSchools(){
     const search=document.getElementById('schoolSearch')?.value.trim().toLowerCase()||'';
     let query=sb.from('schools').select('*').order('created_at',{ascending:false});
-    if(search)query=query.ilike('name',`%${search}%`);
-    const{data:schools}=await query;const tbody=document.getElementById('schoolsTableBody');
-    if(!schools||schools.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center">No schools registered</td></tr>';return}
-    tbody.innerHTML=schools.map(s=>{let sc='status-inactive',st='Inactive';if(s.is_active){const n=new Date(),e=new Date(s.license_expiry);if(e<n){sc='status-expired';st='Expired'}else{sc='status-active';st='Active'}}return`<tr><td><strong>${s.name}</strong></td><td><code style="color:#ffa502;font-weight:600">${s.activation_code}</code></td><td>${s.location||'—'}</td><td>${s.license_expiry?new Date(s.license_expiry).toLocaleDateString():'—'}</td><td><span class="status-badge ${sc}">${st}</span></td><td style="white-space:nowrap"><button class="btn-sm btn-outline" onclick="viewSchool('${s.id}')"><i class="fas fa-eye"></i></button> <button class="btn-sm" style="background:#e74c3c;color:white" onclick="deleteSchool(${s.id},'${s.name.replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i></button> ${!s.is_active?`<button class="btn-sm" style="background:#2ecc71;color:white" onclick="regenerateCode(${s.id},'${s.name.replace(/'/g,"\\'")}')"><i class="fas fa-key"></i></button>`:''}</td></tr>`}).join('')}
+    if(search)query=query.ilike('name','%'+search+'%');
+    const{data:schools}=await query;
+    const tbody=document.getElementById('schoolsTableBody');
+    if(!schools||schools.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center">No schools</td></tr>';return}
+    tbody.innerHTML=schools.map(s=>{
+        let sc='status-inactive',st='Inactive';
+        if(s.is_active){const n=new Date(),e=new Date(s.license_expiry);if(e<n){sc='status-expired';st='Expired'}else{sc='status-active';st='Active'}}
+        return'<tr><td><strong>'+s.name+'</strong></td><td><code style="color:#ffa502">'+s.activation_code+'</code></td><td>'+(s.location||'—')+'</td><td>'+(s.license_expiry?new Date(s.license_expiry).toLocaleDateString():'—')+'</td><td><span class="status-badge '+sc+'">'+st+'</span></td><td><button class="btn-sm btn-outline" onclick="viewSchool(\''+s.id+'\')"><i class="fas fa-eye"></i></button> <button class="btn-sm" style="background:#e74c3c;color:white" onclick="deleteSchool('+s.id+')"><i class="fas fa-trash"></i></button></td></tr>'
+    }).join('');
+}
 
 async function viewSchool(id){
-    const{data:school}=await sb.from('schools').select('*').eq('id',id).single();if(!school)return;
-    const{count:students}=await sb.from('students').select('*',{count:'exact',head:true}).eq('school_id',id);
-    const{count:teachers}=await sb.from('teachers').select('*',{count:'exact',head:true}).eq('school_id',id);
-    const{count:programmes}=await sb.from('programmes').select('*',{count:'exact',head:true}).eq('school_id',id);
-    alert(`🏫 ${school.name}\n📍 ${school.location||'N/A'}\n🎫 Code: ${school.activation_code}\n📅 Created: ${new Date(school.created_at).toLocaleDateString()}\n${school.is_active?`✅ Active\n📅 Expires: ${new Date(school.license_expiry).toLocaleDateString()}\n👨‍🏫 Teachers: ${teachers||0}\n👨‍🎓 Students: ${students||0}\n📚 Programmes: ${programmes||0}`:'⏳ Not yet activated'}`)
+    const{data:school}=await sb.from('schools').select('*').eq('id',id).single();
+    if(!school)return;
+    alert('🏫 '+school.name+'\n📍 '+(school.location||'N/A')+'\n🎫 Code: '+school.activation_code+'\nActive: '+school.is_active);
 }
 
-async function deleteSchool(id,name){if(!confirm(`Delete "${name}"? This removes ALL data!`))return;if(!confirm('ARE YOU SURE? This cannot be undone!'))return;await sb.from('scores').delete().eq('school_id',id);await sb.from('enrollments').delete().eq('student_id',id);await sb.from('students').delete().eq('school_id',id);await sb.from('subjects').delete().eq('school_id',id);await sb.from('programmes').delete().eq('school_id',id);await sb.from('teachers').delete().eq('school_id',id);await sb.from('headmasters').delete().eq('school_id',id);await sb.from('schools').delete().eq('id',id);showToast('🗑 School deleted');await loadStats();await loadSchools()}
+async function deleteSchool(id){
+    if(!confirm('Delete this school? This removes ALL data!'))return;
+    await sb.from('schools').delete().eq('id',id);
+    showToast('🗑 School deleted');
+    await loadStats();await loadSchools();
+}
 
-async function regenerateCode(id,name){if(!confirm(`Generate new code for "${name}"?`))return;const newCode=generateActivationCode();await sb.from('schools').update({activation_code:newCode}).eq('id',id);alert(`✅ New code for ${name}:\n\n${newCode}`);await loadSchools()}
+async function regenerateCode(id){
+    if(!confirm('Generate new code?'))return;
+    const newCode=generateActivationCode();
+    await sb.from('schools').update({activation_code:newCode}).eq('id',id);
+    alert('✅ New code: '+newCode);
+    await loadSchools();
+}
 
 async function loadFeedback(){
-    const container=document.getElementById('feedbackList'),{data:feedback}=await sb.from('feedback').select('*').order('created_at',{ascending:false});
-    if(!feedback||feedback.length===0){container.innerHTML='<p style="color:var(--text2);font-weight:400;font-size:clamp(0.8rem,1vw,0.9rem)">No feedback received</p>';return}
-    container.innerHTML=feedback.map(f=>`<div class="card" style="margin-bottom:1rem;padding:clamp(1rem,1.5vw,1.5rem)"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem"><strong style="font-weight:600;font-size:clamp(0.85rem,1.1vw,0.95rem)">${f.name}</strong><small style="color:var(--text2);font-size:clamp(0.7rem,0.9vw,0.8rem)">${new Date(f.created_at).toLocaleString()}</small></div>${f.email?`<p style="color:#ffa502;font-size:clamp(0.75rem,1vw,0.9rem);font-weight:500">📧 ${f.email}</p>`:''}${f.subject?`<p style="color:var(--text2);font-size:clamp(0.75rem,1vw,0.9rem);font-weight:500">📌 ${f.subject}</p>`:''}<p style="margin-top:.5rem;line-height:1.6;font-weight:400;font-size:clamp(0.8rem,1vw,0.9rem)">${f.message}</p></div>`).join('')
+    const container=document.getElementById('feedbackList');
+    const{data:feedback}=await sb.from('feedback').select('*').order('created_at',{ascending:false});
+    if(!feedback||feedback.length===0){container.innerHTML='<p style="color:var(--text2)">No feedback</p>';return}
+    container.innerHTML=feedback.map(f=>'<div class="card" style="margin-bottom:1rem;padding:1rem"><strong>'+f.name+'</strong><p>'+f.message+'</p></div>').join('');
 }
 
-function showTab(tab){['register','schools','feedback'].forEach(t=>document.getElementById(t+'Tab').style.display='none');document.getElementById(tab+'Tab').style.display='block';document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));event.target.classList.add('active');if(tab==='feedback')loadFeedback();if(tab==='schools')loadSchools()}
+function showTab(tab){
+    ['register','schools','feedback'].forEach(t=>document.getElementById(t+'Tab').style.display='none');
+    document.getElementById(tab+'Tab').style.display='block';
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    event.target.classList.add('active');
+    if(tab==='feedback')loadFeedback();
+    if(tab==='schools')loadSchools();
+}
+
 function logout(){sessionStorage.removeItem('admin_logged_in');document.getElementById('dashboardSection').style.display='none';document.getElementById('loginSection').style.display='block';document.getElementById('adminKey').value='';showToast('👋 Logged out')}
 
 async function checkSession(){if(sessionStorage.getItem('admin_logged_in')==='true'){document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';await loadStats();await loadSchools()}}
 checkSession();
-async function testAdminConnection(){
-    let msg='SB type: '+typeof sb+'\n';
-    try{
-        const{data,error}=await sb.from('schools').select('*').limit(1);
-        if(error){msg+='Error: '+error.message}else{msg+='Schools: '+data.length}
-    }catch(e){msg+='Catch: '+e.message}
-    alert(msg);
-    
-    // Try insert
-    try{
-        const{error}=await sb.from('schools').insert([{name:'TEST SCHOOL',activation_code:'TEST-'+Date.now(),license_duration:365,is_active:false}]);
-        if(error){alert('INSERT Error: '+error.message)}else{alert('✅ Test school inserted! Check Supabase.')}
-    }catch(e){alert('INSERT Catch: '+e.message)}
-}
 </script>
 </body>
 </html>
