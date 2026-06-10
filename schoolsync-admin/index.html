@@ -135,10 +135,10 @@ function generateActivationCode(){const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456
 function adminLogin(){const key=document.getElementById('adminKey').value,err=document.getElementById('loginError');if(key===ADMIN_KEY){sessionStorage.setItem('admin_logged_in','true');document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';loadStats();loadSchools();showToast('✅ Welcome Admin!')}else{err.innerHTML='❌ Invalid admin key';err.style.display='block'}}
 
 async function loadStats(){
-    const{count:totalSchools}=await supabase.from('schools').select('*',{count:'exact',head:true});document.getElementById('totalSchools').innerText=totalSchools||0;
-    const{count:activeSchools}=await supabase.from('schools').select('*',{count:'exact',head:true}).eq('is_active',true);document.getElementById('activeSchools').innerText=activeSchools||0;
-    const{count:totalStudents}=await supabase.from('students').select('*',{count:'exact',head:true});document.getElementById('totalStudents').innerText=totalStudents||0;
-    const{count:totalTeachers}=await supabase.from('teachers').select('*',{count:'exact',head:true});document.getElementById('totalTeachers').innerText=totalTeachers||0;
+    const{count:totalSchools}=await sb.from('schools').select('*',{count:'exact',head:true});document.getElementById('totalSchools').innerText=totalSchools||0;
+    const{count:activeSchools}=await sb.from('schools').select('*',{count:'exact',head:true}).eq('is_active',true);document.getElementById('activeSchools').innerText=activeSchools||0;
+    const{count:totalStudents}=await sb.from('students').select('*',{count:'exact',head:true});document.getElementById('totalStudents').innerText=totalStudents||0;
+    const{count:totalTeachers}=await sb.from('teachers').select('*',{count:'exact',head:true});document.getElementById('totalTeachers').innerText=totalTeachers||0;
 }
 
 async function registerSchool(){
@@ -148,9 +148,9 @@ async function registerSchool(){
     errDiv.style.display='none';succDiv.style.display='none';codeDiv.style.display='none';
     if(!name){errDiv.innerHTML='❌ School name is required';errDiv.style.display='block';return}
     if(!code)code=generateActivationCode();
-    const{data:existing}=await supabase.from('schools').select('id').eq('activation_code',code);
+    const{data:existing}=await sb.from('schools').select('id').eq('activation_code',code);
     if(existing&&existing.length>0){errDiv.innerHTML='❌ Activation code already exists.';errDiv.style.display='block';return}
-    const{error}=await supabase.from('schools').insert([{name,activation_code:code,license_duration:duration,is_active:false}]);
+    const{error}=await sb.from('schools').insert([{name,activation_code:code,license_duration:duration,is_active:false}]);
     if(error){errDiv.innerHTML='❌ Failed to register school';errDiv.style.display='block';return}
     codeDiv.innerHTML=`🎫 Activation Code: <strong>${code}</strong>`;codeDiv.style.display='block';
     succDiv.innerHTML=`✅ "${name}" registered!<br>Code: <strong>${code}</strong><br>Duration: ${duration} days`;succDiv.style.display='block';
@@ -160,26 +160,26 @@ async function registerSchool(){
 
 async function loadSchools(){
     const search=document.getElementById('schoolSearch')?.value.trim().toLowerCase()||'';
-    let query=supabase.from('schools').select('*').order('created_at',{ascending:false});
+    let query=sb.from('schools').select('*').order('created_at',{ascending:false});
     if(search)query=query.ilike('name',`%${search}%`);
     const{data:schools}=await query;const tbody=document.getElementById('schoolsTableBody');
     if(!schools||schools.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center">No schools registered</td></tr>';return}
     tbody.innerHTML=schools.map(s=>{let sc='status-inactive',st='Inactive';if(s.is_active){const n=new Date(),e=new Date(s.license_expiry);if(e<n){sc='status-expired';st='Expired'}else{sc='status-active';st='Active'}}return`<tr><td><strong>${s.name}</strong></td><td><code style="color:#ffa502;font-weight:600">${s.activation_code}</code></td><td>${s.location||'—'}</td><td>${s.license_expiry?new Date(s.license_expiry).toLocaleDateString():'—'}</td><td><span class="status-badge ${sc}">${st}</span></td><td style="white-space:nowrap"><button class="btn-sm btn-outline" onclick="viewSchool('${s.id}')"><i class="fas fa-eye"></i></button> <button class="btn-sm" style="background:#e74c3c;color:white" onclick="deleteSchool(${s.id},'${s.name.replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i></button> ${!s.is_active?`<button class="btn-sm" style="background:#2ecc71;color:white" onclick="regenerateCode(${s.id},'${s.name.replace(/'/g,"\\'")}')"><i class="fas fa-key"></i></button>`:''}</td></tr>`}).join('')}
 
 async function viewSchool(id){
-    const{data:school}=await supabase.from('schools').select('*').eq('id',id).single();if(!school)return;
-    const{count:students}=await supabase.from('students').select('*',{count:'exact',head:true}).eq('school_id',id);
-    const{count:teachers}=await supabase.from('teachers').select('*',{count:'exact',head:true}).eq('school_id',id);
-    const{count:programmes}=await supabase.from('programmes').select('*',{count:'exact',head:true}).eq('school_id',id);
+    const{data:school}=await sb.from('schools').select('*').eq('id',id).single();if(!school)return;
+    const{count:students}=await sb.from('students').select('*',{count:'exact',head:true}).eq('school_id',id);
+    const{count:teachers}=await sb.from('teachers').select('*',{count:'exact',head:true}).eq('school_id',id);
+    const{count:programmes}=await sb.from('programmes').select('*',{count:'exact',head:true}).eq('school_id',id);
     alert(`🏫 ${school.name}\n📍 ${school.location||'N/A'}\n🎫 Code: ${school.activation_code}\n📅 Created: ${new Date(school.created_at).toLocaleDateString()}\n${school.is_active?`✅ Active\n📅 Expires: ${new Date(school.license_expiry).toLocaleDateString()}\n👨‍🏫 Teachers: ${teachers||0}\n👨‍🎓 Students: ${students||0}\n📚 Programmes: ${programmes||0}`:'⏳ Not yet activated'}`)
 }
 
-async function deleteSchool(id,name){if(!confirm(`Delete "${name}"? This removes ALL data!`))return;if(!confirm('ARE YOU SURE? This cannot be undone!'))return;await supabase.from('scores').delete().eq('school_id',id);await supabase.from('enrollments').delete().eq('student_id',id);await supabase.from('students').delete().eq('school_id',id);await supabase.from('subjects').delete().eq('school_id',id);await supabase.from('programmes').delete().eq('school_id',id);await supabase.from('teachers').delete().eq('school_id',id);await supabase.from('headmasters').delete().eq('school_id',id);await supabase.from('schools').delete().eq('id',id);showToast('🗑 School deleted');await loadStats();await loadSchools()}
+async function deleteSchool(id,name){if(!confirm(`Delete "${name}"? This removes ALL data!`))return;if(!confirm('ARE YOU SURE? This cannot be undone!'))return;await sb.from('scores').delete().eq('school_id',id);await sb.from('enrollments').delete().eq('student_id',id);await sb.from('students').delete().eq('school_id',id);await sb.from('subjects').delete().eq('school_id',id);await sb.from('programmes').delete().eq('school_id',id);await sb.from('teachers').delete().eq('school_id',id);await sb.from('headmasters').delete().eq('school_id',id);await sb.from('schools').delete().eq('id',id);showToast('🗑 School deleted');await loadStats();await loadSchools()}
 
-async function regenerateCode(id,name){if(!confirm(`Generate new code for "${name}"?`))return;const newCode=generateActivationCode();await supabase.from('schools').update({activation_code:newCode}).eq('id',id);alert(`✅ New code for ${name}:\n\n${newCode}`);await loadSchools()}
+async function regenerateCode(id,name){if(!confirm(`Generate new code for "${name}"?`))return;const newCode=generateActivationCode();await sb.from('schools').update({activation_code:newCode}).eq('id',id);alert(`✅ New code for ${name}:\n\n${newCode}`);await loadSchools()}
 
 async function loadFeedback(){
-    const container=document.getElementById('feedbackList'),{data:feedback}=await supabase.from('feedback').select('*').order('created_at',{ascending:false});
+    const container=document.getElementById('feedbackList'),{data:feedback}=await sb.from('feedback').select('*').order('created_at',{ascending:false});
     if(!feedback||feedback.length===0){container.innerHTML='<p style="color:var(--text2);font-weight:400;font-size:clamp(0.8rem,1vw,0.9rem)">No feedback received</p>';return}
     container.innerHTML=feedback.map(f=>`<div class="card" style="margin-bottom:1rem;padding:clamp(1rem,1.5vw,1.5rem)"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem"><strong style="font-weight:600;font-size:clamp(0.85rem,1.1vw,0.95rem)">${f.name}</strong><small style="color:var(--text2);font-size:clamp(0.7rem,0.9vw,0.8rem)">${new Date(f.created_at).toLocaleString()}</small></div>${f.email?`<p style="color:#ffa502;font-size:clamp(0.75rem,1vw,0.9rem);font-weight:500">📧 ${f.email}</p>`:''}${f.subject?`<p style="color:var(--text2);font-size:clamp(0.75rem,1vw,0.9rem);font-weight:500">📌 ${f.subject}</p>`:''}<p style="margin-top:.5rem;line-height:1.6;font-weight:400;font-size:clamp(0.8rem,1vw,0.9rem)">${f.message}</p></div>`).join('')
 }
