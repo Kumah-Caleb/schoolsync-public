@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script src="supabase-config.js"></script>
     <style>
         :root{--bg:#2d6b3f;--bg2:#d4a530;--card-bg:white;--text:#333;--text2:#666;--border:#ddd;--table-stripe:#f8f9fa}
@@ -19,7 +20,6 @@
         .card{background:var(--card-bg);border-radius:1.5rem;padding:clamp(1.2rem,2.5vw,2rem);margin-bottom:clamp(1rem,2vw,2rem);box-shadow:0 20px 40px rgba(0,0,0,0.1)}
         .header{text-align:center;margin-bottom:clamp(1rem,2vw,2rem)}
         .header h1{color:#1a472a;font-size:clamp(1.3rem,3vw,2rem);font-weight:800;letter-spacing:-0.5px}
-        .dark-mode .header h1{color:#2ecc71}
         .form-group{margin-bottom:clamp(0.8rem,1.2vw,1.2rem)}
         .form-group label{display:block;font-weight:600;margin-bottom:.4rem;color:var(--text);font-size:clamp(0.8rem,1.2vw,0.9rem)}
         .form-group input,.form-group select{width:100%;padding:clamp(0.6rem,1vw,0.8rem);border:1px solid var(--border);border-radius:.5rem;font-size:clamp(0.85rem,1.2vw,1rem);background:var(--card-bg);color:var(--text);font-family:'Inter',sans-serif}
@@ -32,6 +32,7 @@
         .btn-success{background:linear-gradient(135deg,#2ecc71,#27ae60);width:auto;color:white}
         .btn-warning{background:#f39c12;color:white;width:auto}
         .btn-info{background:#3498db;color:white;width:auto}
+        .btn-email{background:#8e44ad;color:white;width:auto}
         .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:clamp(0.5rem,1vw,1rem);margin-bottom:clamp(1rem,2vw,2rem)}
         .stat-card{background:linear-gradient(225deg,#8db355,#e0c87a);color:white;padding:clamp(1rem,1.5vw,1.5rem);border-radius:1rem;text-align:center}
         .stat-number{font-size:clamp(1.3rem,2.5vw,2rem);font-weight:800}
@@ -40,9 +41,9 @@
         .tab{padding:clamp(0.6rem,1vw,0.8rem) clamp(0.8rem,1.2vw,1.2rem);background:none;border:none;cursor:pointer;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;font-size:clamp(0.7rem,1vw,0.9rem);font-family:'Inter',sans-serif}
         .tab.active{color:#c8960a;border-bottom-color:#c8960a}
         .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -1rem;padding:0 1rem}
-        table{width:100%;border-collapse:collapse;font-size:clamp(0.7rem,1vw,0.9rem);min-width:500px}
-        th,td{padding:clamp(0.5rem,0.8vw,0.8rem);text-align:left;border-bottom:1px solid var(--border)}
-        th{background:var(--table-stripe);font-weight:600}
+        table{width:100%;border-collapse:collapse;font-size:clamp(0.7rem,1vw,0.9rem);min-width:700px}
+        th,td{padding:clamp(0.4rem,0.7vw,0.7rem);text-align:center;border:1px solid var(--border)}
+        th{background:var(--table-stripe);font-weight:600;white-space:nowrap}
         tr:hover{background:var(--table-stripe)}
         .search-container{display:flex;gap:.5rem;margin-bottom:1rem;align-items:center}
         .search-input{flex:1;min-width:120px;padding:clamp(0.5rem,0.8vw,0.7rem) clamp(0.7rem,1vw,1rem);border:1px solid var(--border);border-radius:.5rem;background:var(--card-bg);color:var(--text);font-family:'Inter',sans-serif;font-size:clamp(0.8rem,1vw,0.9rem)}
@@ -58,12 +59,12 @@
         .grade-c6{background:#ffb74d;color:white;padding:2px 8px;border-radius:20px;display:inline-block;font-weight:700;font-size:clamp(0.6rem,0.85vw,0.75rem)}
         .grade-d7,.grade-e8,.grade-f9{background:#c62828;color:white;padding:2px 8px;border-radius:20px;display:inline-block;font-weight:700;font-size:clamp(0.6rem,0.85vw,0.75rem)}
         .status-badge{display:inline-block;padding:.2rem .6rem;border-radius:1rem;font-size:clamp(0.6rem,0.85vw,0.75rem);font-weight:600}
-        .status-active{background:#2ecc7120;color:#27ae60}
-        .status-pending{background:#fff3cd;color:#856404}
+        .status-active{background:#2ecc7120;color:#27ae60}.status-pending{background:#fff3cd;color:#856404}
         .level-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:clamp(0.65rem,0.9vw,0.8rem);font-weight:700}
         .level-shs{background:#e8f0fe;color:#1a472a}.level-jhs{background:#fff3e0;color:#e67e22}
-        .error-box{background:#ffebee;padding:clamp(0.7rem,1vw,1rem);border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #e74c3c;color:#c62828;font-weight:500;font-size:clamp(0.8rem,1.1vw,0.9rem)}
-        .success-box{background:#e8f5e9;padding:clamp(0.7rem,1vw,1rem);border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #2ecc71;color:#2e7d32;font-weight:500;font-size:clamp(0.8rem,1.1vw,0.9rem)}
+        .error-box{background:#ffebee;padding:clamp(0.7rem,1vw,1rem);border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #e74c3c;color:#c62828}
+        .success-box{background:#e8f5e9;padding:clamp(0.7rem,1vw,1rem);border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #2ecc71;color:#2e7d32}
+        .position-highlight{font-weight:800}
         @media(max-width:768px){.container{padding:0.8rem}.card{padding:1.2rem;border-radius:1rem}.flex-row{flex-direction:column}.flex-row input,.flex-row select{min-width:100%}}
         @media(max-width:400px){.tabs{gap:0.2rem}.tab{padding:0.5rem 0.6rem;font-size:0.7rem}}
     </style>
@@ -84,18 +85,16 @@
     <div id="dashboardSection" style="display:none">
         <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.8rem">
-                <div><h2 style="color:#1a472a;font-weight:700;font-size:clamp(1.1rem,2vw,1.5rem)"><span id="schoolName"></span></h2><small style="color:var(--text2);font-size:clamp(0.7rem,1vw,0.8rem)">👤 <span id="teacherName"></span></small></div>
+                <div><h2 style="color:#1a472a;font-weight:700;font-size:clamp(1.1rem,2vw,1.5rem)"><span id="schoolName"></span></h2><small style="color:var(--text2)">👤 <span id="teacherName"></span></small></div>
                 <div><button class="btn-outline btn-sm" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button><button class="btn-danger btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
             </div>
         </div>
-
         <div class="stats-grid">
             <div class="stat-card"><div class="stat-number" id="programmeCount">0</div><div class="stat-label">Programmes</div></div>
             <div class="stat-card"><div class="stat-number" id="subjectCount">0</div><div class="stat-label">Subjects</div></div>
             <div class="stat-card"><div class="stat-number" id="studentCount">0</div><div class="stat-label">Students</div></div>
             <div class="stat-card"><div class="stat-number" id="assessmentCount">0</div><div class="stat-label">Assessments</div></div>
         </div>
-
         <div class="card">
             <div class="tabs">
                 <button class="tab active" onclick="showTab('programmes',event)">📚 Programmes</button>
@@ -108,99 +107,66 @@
 
             <!-- PROGRAMMES TAB -->
             <div id="programmesTab">
-                <h3 style="font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">Create Programme</h3>
-                <div class="flex-row" style="margin-bottom:2rem">
-                    <input type="text" id="progName" placeholder="Programme name">
-                    <select id="progLevel"><option value="JHS">JHS</option><option value="SHS">SHS</option></select>
-                    <button class="btn" onclick="addProgramme()" style="width:auto">+ Add</button>
-                </div>
-                <h3 style="font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">All Programmes</h3>
-                <div id="programmesList"></div>
+                <h3 style="font-weight:700">Create Programme</h3>
+                <div class="flex-row" style="margin-bottom:2rem"><input type="text" id="progName" placeholder="Programme name"><select id="progLevel"><option value="JHS">JHS</option><option value="SHS">SHS</option></select><button class="btn" onclick="addProgramme()" style="width:auto">+ Add</button></div>
+                <h3 style="font-weight:700">All Programmes</h3><div id="programmesList"></div>
             </div>
 
             <!-- SUBJECTS TAB -->
             <div id="subjectsTab" style="display:none">
-                <h3 style="font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">Add Subject</h3>
-                <div class="flex-row" style="margin-bottom:2rem">
-                    <select id="subjectProgramme"><option value="">Select Programme</option></select>
-                    <input type="text" id="subjectName" placeholder="Subject name">
-                    <button class="btn" onclick="addSubject()" style="width:auto">+ Add</button>
-                </div>
-                <h3 style="font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">All Subjects</h3>
-                <div id="subjectsList"></div>
+                <h3 style="font-weight:700">Add Subject</h3>
+                <div class="flex-row" style="margin-bottom:2rem"><select id="subjectProgramme"><option value="">Select Programme</option></select><input type="text" id="subjectName" placeholder="Subject name"><button class="btn" onclick="addSubject()" style="width:auto">+ Add</button></div>
+                <h3 style="font-weight:700">All Subjects</h3><div id="subjectsList"></div>
             </div>
 
             <!-- STUDENTS TAB -->
             <div id="studentsTab" style="display:none">
-                <h3 style="font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">Add Student</h3>
-                <div class="flex-row" style="margin-bottom:1rem">
-                    <input type="text" id="addStudentName" placeholder="Full Name">
-                    <input type="email" id="addStudentEmail" placeholder="Email">
-                    <input type="tel" id="addStudentPhone" placeholder="Phone">
-                    <button class="btn btn-success" onclick="addStudent()" style="width:auto">+ Add Student</button>
-                </div>
+                <h3 style="font-weight:700">Add Student</h3>
+                <div class="flex-row" style="margin-bottom:1rem"><input type="text" id="addStudentName" placeholder="Full Name"><input type="email" id="addStudentEmail" placeholder="Email"><input type="tel" id="addStudentPhone" placeholder="Phone"><button class="btn btn-success" onclick="addStudent()" style="width:auto">+ Add</button></div>
                 <div id="pendingStudents"></div>
-                <div class="search-container" style="margin-top:1rem">
-                    <input type="text" id="studentSearchInput" class="search-input" placeholder="🔍 Search students by name or ID..." onkeyup="renderStudents()">
-                </div>
-                <h3 style="font-weight:700;margin-top:1rem;font-size:clamp(0.9rem,1.3vw,1.1rem)">All Students</h3>
-                <div class="table-wrapper">
-                    <table><thead><tr><th>ID</th><th>Name</th><th>Programme</th><th>Status</th><th>Actions</th></tr></thead><tbody id="studentsTableBody"></tbody></table>
-                </div>
+                <div class="search-container"><input type="text" id="studentSearchInput" class="search-input" placeholder="🔍 Search by name or ID..." onkeyup="renderStudents()"></div>
+                <h3 style="font-weight:700;margin-top:1rem">All Students</h3>
+                <div class="table-wrapper"><table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Programme</th><th>Status</th><th>Actions</th></tr></thead><tbody id="studentsTableBody"></tbody></table></div>
             </div>
 
             <!-- SCORES TAB -->
             <div id="scoresTab" style="display:none">
-                <h3 style="font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">Record Assessment</h3>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(0.5rem,1vw,1rem);margin-bottom:2rem">
-                    <select id="scoreSubject"><option value="">Select Subject</option></select>
-                    <select id="scoreStudent"><option value="">Select Student</option></select>
-                    <select id="scoreTerm"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select>
-                    <input type="number" id="classScore" placeholder="Class Score (%)" min="0" max="100">
-                    <input type="number" id="examScore" placeholder="Exam Score (%)" min="0" max="100">
-                    <button class="btn btn-success" onclick="recordScore()">💾 Save Score</button>
-                </div>
-                <h3 style="font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">Recent Assessments</h3>
-                <div id="recentScores"></div>
+                <h3 style="font-weight:700">Record Assessment</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(0.5rem,1vw,1rem);margin-bottom:2rem"><select id="scoreSubject"><option value="">Select Subject</option></select><select id="scoreStudent"><option value="">Select Student</option></select><select id="scoreTerm"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select><input type="number" id="classScore" placeholder="Class Score (%)" min="0" max="100"><input type="number" id="examScore" placeholder="Exam Score (%)" min="0" max="100"><button class="btn btn-success" onclick="recordScore()">💾 Save Score</button></div>
+                <h3 style="font-weight:700">Recent Assessments</h3><div id="recentScores"></div>
             </div>
 
             <!-- REPORTS TAB -->
             <div id="reportsTab" style="display:none">
-                <h3 style="font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">📋 Generate Report</h3>
-                <div class="search-container" style="margin-bottom:1rem">
-                    <input type="text" id="reportSearchInput" class="search-input" placeholder="🔍 Search student..." onkeyup="filterReportStudents()">
-                </div>
-                <div class="flex-row" style="margin-bottom:2rem">
-                    <select id="reportStudent"><option value="">Select Student</option></select>
-                    <select id="reportTerm"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select>
-                    <button class="btn" onclick="generateReport()" style="width:auto">📄 Generate</button>
-                </div>
+                <h3 style="font-weight:700">📋 Generate Report</h3>
+                <div class="search-container"><input type="text" id="reportSearchInput" class="search-input" placeholder="🔍 Search student..." onkeyup="filterReportStudents()"></div>
+                <div class="flex-row" style="margin-bottom:2rem"><select id="reportStudent"><option value="">Select Student</option></select><select id="reportTerm"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select><button class="btn" onclick="generateReport()" style="width:auto">📄 Generate</button></div>
                 <div id="reportResult"></div>
             </div>
 
             <!-- SETTINGS TAB -->
             <div id="settingsTab" style="display:none">
-                <h3 style="font-weight:700;font-size:clamp(0.9rem,1.3vw,1.1rem)">👤 My Profile</h3>
+                <h3 style="font-weight:700">👤 My Profile</h3>
                 <div class="form-group"><label>Name</label><input type="text" id="profileName"></div>
                 <div class="form-group"><label>Email</label><input type="email" id="profileEmail" readonly></div>
                 <div class="form-group"><label>Phone</label><input type="tel" id="profilePhone"></div>
-                <button class="btn" onclick="updateTeacherProfile()" style="width:auto">💾 Update Profile</button>
-
-                <h3 style="font-weight:700;margin-top:2rem;font-size:clamp(0.9rem,1.3vw,1.1rem)">🔐 Change Password</h3>
-                <div class="form-group"><label>Current Password</label><input type="password" id="currentPwd"></div>
-                <div class="form-group"><label>New Password</label><input type="password" id="newPwd"></div>
-                <div class="form-group"><label>Confirm Password</label><input type="password" id="confirmPwd"></div>
-                <button class="btn btn-info" onclick="changeTeacherPassword()" style="width:auto">🔒 Update Password</button>
-
-                <h3 style="font-weight:700;margin-top:2rem;font-size:clamp(0.9rem,1.3vw,1.1rem)">📥 Download All Data</h3>
-                <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-                    <button class="btn-sm btn-info" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-                    <button class="btn-sm btn-success" onclick="downloadExcel()"><i class="fas fa-file-excel"></i> Excel</button>
-                    <button class="btn-sm btn-warning" onclick="downloadWord()"><i class="fas fa-file-word"></i> Word</button>
+                <button class="btn" onclick="updateTeacherProfile()" style="width:auto">💾 Update</button>
+                <h3 style="font-weight:700;margin-top:2rem">🔐 Change Password</h3>
+                <div class="form-group"><label>Current</label><input type="password" id="currentPwd"></div>
+                <div class="form-group"><label>New</label><input type="password" id="newPwd"></div>
+                <div class="form-group"><label>Confirm</label><input type="password" id="confirmPwd"></div>
+                <button class="btn btn-info" onclick="changeTeacherPassword()" style="width:auto">🔒 Update</button>
+                <h3 style="font-weight:700;margin-top:2rem">📥 Download Class Report (with Positions)</h3>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem">
+                    <select id="classReportTerm" style="padding:.7rem;border:1px solid var(--border);border-radius:.5rem;min-width:150px"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select>
                 </div>
-
-                <h3 style="font-weight:700;margin-top:2rem;font-size:clamp(0.9rem,1.3vw,1.1rem);color:#e74c3c">🗑 Clear Data</h3>
-                <p style="font-size:clamp(0.75rem,1vw,0.85rem);color:var(--text2)">Remove all scores, students, subjects, and programmes for this school.</p>
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+                    <button class="btn-sm btn-info" onclick="downloadClassReportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <button class="btn-sm btn-success" onclick="downloadClassReportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+                    <button class="btn-sm btn-warning" onclick="downloadClassReportWord()"><i class="fas fa-file-word"></i> Word</button>
+                </div>
+                <h3 style="font-weight:700;margin-top:2rem;color:#e74c3c">🗑 Clear Data</h3>
+                <p style="font-size:clamp(0.75rem,1vw,0.85rem);color:var(--text2)">Remove all data for this school.</p>
                 <button class="btn btn-danger" onclick="clearAllData()" style="width:auto">🗑 Clear All Data</button>
             </div>
         </div>
@@ -209,6 +175,7 @@
 <div id="toast"></div>
 
 <script>
+(function(){emailjs.init("CVzkW-GV4NwfsF5GU")})();
 let currentTeacher=null,currentSchool=null,schoolData={programmes:[],subjects:[],students:[],scores:[]};
 function hashPassword(pw){const s='SchoolSync_GH_2024';return btoa(btoa(pw+s).split('').reverse().join('')+s)}
 function showToast(msg){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('toast');setTimeout(()=>t.classList.remove('toast'),3000)}
@@ -216,14 +183,14 @@ function toggleDarkMode(){document.body.classList.toggle('dark-mode');localStora
 if(localStorage.getItem('darkMode')==='true')document.body.classList.add('dark-mode');
 function getGrade(s){if(s>=80)return{grade:'A1',class:'grade-a1'};if(s>=70)return{grade:'B2',class:'grade-b2'};if(s>=65)return{grade:'B3',class:'grade-b3'};if(s>=60)return{grade:'C4',class:'grade-c4'};if(s>=55)return{grade:'C5',class:'grade-c5'};if(s>=50)return{grade:'C6',class:'grade-c6'};if(s>=45)return{grade:'D7',class:'grade-d7'};if(s>=40)return{grade:'E8',class:'grade-e8'};return{grade:'F9',class:'grade-f9'}}
 
+// LOGIN
 async function login(){
-    const schoolName=document.getElementById('loginSchool').value.trim(),email=document.getElementById('loginEmail').value.trim(),pw=document.getElementById('loginPassword').value,err=document.getElementById('loginError');
-    err.style.display='none';
-    if(!schoolName||!email||!pw){err.innerHTML='❌ Fill all fields';err.style.display='block';return}
-    const{data:school}=await sb.from('schools').select('*').eq('name',schoolName).eq('is_active',true).single();
-    if(!school){err.innerHTML='❌ School not found or not activated';err.style.display='block';return}
-    const{data:teacher,error:teacherError}=await sb.from('teachers').select('*').eq('school_id',school.id).eq('email',email).single();
-    if(teacherError||!teacher||teacher.password!==hashPassword(pw)){err.innerHTML='❌ Invalid credentials';err.style.display='block';return}
+    const sn=document.getElementById('loginSchool').value.trim(),em=document.getElementById('loginEmail').value.trim(),pw=document.getElementById('loginPassword').value,err=document.getElementById('loginError');
+    err.style.display='none';if(!sn||!em||!pw){err.innerHTML='❌ Fill all fields';err.style.display='block';return}
+    const{data:school}=await sb.from('schools').select('*').eq('name',sn).eq('is_active',true).single();
+    if(!school){err.innerHTML='❌ School not found';err.style.display='block';return}
+    const{data:teacher,error:te}=await sb.from('teachers').select('*').eq('school_id',school.id).eq('email',em).single();
+    if(te||!teacher||teacher.password!==hashPassword(pw)){err.innerHTML='❌ Invalid credentials';err.style.display='block';return}
     currentTeacher=teacher;currentSchool=school;
     sessionStorage.setItem('teacher_session',JSON.stringify({id:teacher.id,schoolId:school.id,name:teacher.name,email:teacher.email}));
     document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';
@@ -233,87 +200,65 @@ async function login(){
 }
 
 async function loadAllData(){
-    const{data:programmes}=await sb.from('programmes').select('*').eq('school_id',currentSchool.id).order('name');schoolData.programmes=programmes||[];
-    const{data:subjects}=await sb.from('subjects').select('*').eq('school_id',currentSchool.id).order('name');schoolData.subjects=subjects||[];
-    const{data:students}=await sb.from('students').select('*').eq('school_id',currentSchool.id).order('name');schoolData.students=students||[];
-    const{data:scores}=await sb.from('scores').select('*').eq('school_id',currentSchool.id).order('date',{ascending:false});schoolData.scores=scores||[];
+    const{data:p}=await sb.from('programmes').select('*').eq('school_id',currentSchool.id).order('name');schoolData.programmes=p||[];
+    const{data:s}=await sb.from('subjects').select('*').eq('school_id',currentSchool.id).order('name');schoolData.subjects=s||[];
+    const{data:st}=await sb.from('students').select('*').eq('school_id',currentSchool.id).order('name');schoolData.students=st||[];
+    const{data:sc}=await sb.from('scores').select('*').eq('school_id',currentSchool.id).order('date',{ascending:false});schoolData.scores=sc||[];
     await updateStats();await renderProgrammes();await renderSubjects();await renderStudents();await renderRecentScores();await populateDropdowns();
 }
-
 async function updateStats(){document.getElementById('programmeCount').innerText=schoolData.programmes.length;document.getElementById('subjectCount').innerText=schoolData.subjects.length;document.getElementById('studentCount').innerText=schoolData.students.length;document.getElementById('assessmentCount').innerText=schoolData.scores.length}
 
-// Programme functions
-async function addProgramme(){const name=document.getElementById('progName').value.trim(),level=document.getElementById('progLevel').value;if(!name){showToast('Enter programme name');return};await sb.from('programmes').insert([{school_id:currentSchool.id,name,level}]);showToast('✅ Programme added!');document.getElementById('progName').value='';await loadAllData()}
-async function renderProgrammes(){const c=document.getElementById('programmesList');if(schoolData.programmes.length===0){c.innerHTML='<p style="color:var(--text2)">No programmes</p>';return}c.innerHTML=schoolData.programmes.map(p=>{const sc=schoolData.subjects.filter(s=>s.programme_id===p.id).length,lc=p.level==='JHS'?'level-jhs':'level-shs';return`<div style="border:1px solid var(--border);padding:clamp(0.6rem,1vw,1rem);border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem"><div><strong>${p.name}</strong> <span class="level-badge ${lc}">${p.level}</span> <span style="color:var(--text2);margin-left:5px;font-size:clamp(0.7rem,1vw,0.85rem)">${sc} subjects</span></div><button class="btn-danger btn-sm" onclick="deleteProgramme(${p.id})">🗑</button></div>`}).join('')}
+// PROGRAMMES
+async function addProgramme(){const n=document.getElementById('progName').value.trim(),l=document.getElementById('progLevel').value;if(!n){showToast('Enter name');return}await sb.from('programmes').insert([{school_id:currentSchool.id,name:n,level:l}]);showToast('✅ Added!');document.getElementById('progName').value='';await loadAllData()}
+async function renderProgrammes(){const c=document.getElementById('programmesList');if(!schoolData.programmes.length){c.innerHTML='<p style="color:var(--text2)">No programmes</p>';return}c.innerHTML=schoolData.programmes.map(p=>`<div style="border:1px solid var(--border);padding:.8rem;border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center"><div><strong>${p.name}</strong> <span class="level-badge ${p.level==='JHS'?'level-jhs':'level-shs'}">${p.level}</span></div><button class="btn-danger btn-sm" onclick="deleteProgramme(${p.id})">🗑</button></div>`).join('')}
 async function deleteProgramme(id){if(!confirm('Delete?'))return;await sb.from('programmes').delete().eq('id',id);await sb.from('subjects').delete().eq('programme_id',id);showToast('🗑 Deleted');await loadAllData()}
 
-// Subject functions
-async function addSubject(){const pid=document.getElementById('subjectProgramme').value,n=document.getElementById('subjectName').value.trim();if(!pid||!n){showToast('Select programme and enter name');return};await sb.from('subjects').insert([{school_id:currentSchool.id,programme_id:parseInt(pid),name:n}]);showToast('✅ Subject added!');document.getElementById('subjectName').value='';await loadAllData()}
-async function renderSubjects(){const s=document.getElementById('subjectProgramme'),c=document.getElementById('subjectsList');s.innerHTML='<option value="">Select Programme</option>'+schoolData.programmes.map(p=>`<option value="${p.id}">${p.name} (${p.level})</option>`).join('');if(schoolData.subjects.length===0){c.innerHTML='<p style="color:var(--text2)">No subjects</p>';return}c.innerHTML=schoolData.subjects.map(s=>{const p=schoolData.programmes.find(p=>p.id===s.programme_id);return`<div style="border:1px solid var(--border);padding:clamp(0.5rem,0.8vw,0.8rem);border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem"><span>📖 <strong>${s.name}</strong> — ${p?p.name:'Unassigned'}</span><button class="btn-danger btn-sm" onclick="deleteSubject(${s.id})">🗑</button></div>`}).join('')}
+// SUBJECTS
+async function addSubject(){const pid=document.getElementById('subjectProgramme').value,n=document.getElementById('subjectName').value.trim();if(!pid||!n){showToast('Select programme and enter name');return}await sb.from('subjects').insert([{school_id:currentSchool.id,programme_id:parseInt(pid),name:n}]);showToast('✅ Added!');document.getElementById('subjectName').value='';await loadAllData()}
+async function renderSubjects(){const s=document.getElementById('subjectProgramme'),c=document.getElementById('subjectsList');s.innerHTML='<option value="">Select Programme</option>'+schoolData.programmes.map(p=>`<option value="${p.id}">${p.name} (${p.level})</option>`).join('');if(!schoolData.subjects.length){c.innerHTML='<p style="color:var(--text2)">No subjects</p>';return}c.innerHTML=schoolData.subjects.map(s=>`<div style="border:1px solid var(--border);padding:.6rem;border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center"><span>📖 <strong>${s.name}</strong></span><button class="btn-danger btn-sm" onclick="deleteSubject(${s.id})">🗑</button></div>`).join('')}
 async function deleteSubject(id){if(!confirm('Delete?'))return;await sb.from('subjects').delete().eq('id',id);await sb.from('enrollments').delete().eq('subject_id',id);await sb.from('scores').delete().eq('subject_id',id);showToast('🗑 Deleted');await loadAllData()}
 
-// Student functions
-async function addStudent(){
-    const name=document.getElementById('addStudentName').value.trim(),email=document.getElementById('addStudentEmail').value.trim(),phone=document.getElementById('addStudentPhone').value.trim();
-    if(!name){showToast('Enter student name');return}
-    const{data:last}=await sb.from('students').select('student_id').eq('school_id',currentSchool.id).order('id',{ascending:false}).limit(1);
-    let next=1;if(last&&last.length>0){const n=parseInt(last[0].student_id.replace(/[^0-9]/g,''));if(!isNaN(n))next=n+1}
-    const sid='STU'+String(next).padStart(3,'0');
-    await sb.from('students').insert([{school_id:currentSchool.id,student_id:sid,name,email,phone,password:hashPassword('student123'),approved:true}]);
-    showToast('✅ Student added! ID: '+sid);document.getElementById('addStudentName').value='';document.getElementById('addStudentEmail').value='';document.getElementById('addStudentPhone').value='';
-    await loadAllData();
-}
-async function renderStudents(){
-    const search=document.getElementById('studentSearchInput')?.value.trim().toLowerCase()||'';
-    const pending=schoolData.students.filter(s=>!s.approved),pd=document.getElementById('pendingStudents');
-    if(pending.length>0){pd.innerHTML='<h4 style="color:#856404;font-weight:600;font-size:clamp(0.8rem,1.1vw,0.95rem)">⏳ Pending Approval</h4>'+pending.map(s=>`<div style="border:1px solid #ffc107;padding:clamp(0.5rem,0.8vw,0.8rem);border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem"><span style="font-size:clamp(0.75rem,1vw,0.85rem)">🆔 ${s.student_id} — ${s.name}</span><button class="btn-success btn-sm" onclick="approveStudent(${s.id})">✅ Approve</button></div>`).join('')}else{pd.innerHTML=''}
-    let students=schoolData.students;
-    if(search)students=students.filter(s=>s.name.toLowerCase().includes(search)||s.student_id.toLowerCase().includes(search));
-    const tbody=document.getElementById('studentsTableBody');
-    if(students.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center">No students found</td></tr>';return}
-    tbody.innerHTML=students.map(s=>{const prog=schoolData.programmes.find(p=>p.id===s.programme_id);return`<tr><td>${s.student_id}</td><td><strong>${s.name}</strong></td><td>${prog?prog.name:'—'}</td><td><span class="status-badge ${s.approved?'status-active':'status-pending'}">${s.approved?'Active':'Pending'}</span></td><td>${!s.approved?`<button class="btn-success btn-sm" onclick="approveStudent(${s.id})">Approve</button>`:`<button class="btn-danger btn-sm" onclick="removeStudent(${s.id},'${s.name}')">🗑</button>`}</td></tr>`}).join('')}
+// STUDENTS
+async function addStudent(){const n=document.getElementById('addStudentName').value.trim(),e=document.getElementById('addStudentEmail').value.trim(),p=document.getElementById('addStudentPhone').value.trim();if(!n){showToast('Enter name');return}const{data:last}=await sb.from('students').select('student_id').eq('school_id',currentSchool.id).order('id',{ascending:false}).limit(1);let next=1;if(last&&last.length>0){const num=parseInt(last[0].student_id.replace(/[^0-9]/g,''));if(!isNaN(num))next=num+1}const sid='STU'+String(next).padStart(3,'0');await sb.from('students').insert([{school_id:currentSchool.id,student_id:sid,name:n,email:e,phone:p,password:hashPassword('student123'),approved:true}]);showToast('✅ Student added! ID: '+sid);document.getElementById('addStudentName').value='';document.getElementById('addStudentEmail').value='';document.getElementById('addStudentPhone').value='';await loadAllData()}
+async function renderStudents(){const search=(document.getElementById('studentSearchInput')?.value||'').trim().toLowerCase();const pending=schoolData.students.filter(s=>!s.approved),pd=document.getElementById('pendingStudents');pd.innerHTML=pending.length?pending.map(s=>`<div style="border:1px solid #ffc107;padding:.6rem;border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center"><span>🆔 ${s.student_id} — ${s.name}</span><button class="btn-success btn-sm" onclick="approveStudent(${s.id})">✅ Approve</button></div>`).join(''):'';let students=schoolData.students;if(search)students=students.filter(s=>s.name.toLowerCase().includes(search)||s.student_id.toLowerCase().includes(search));const tb=document.getElementById('studentsTableBody');tb.innerHTML=students.length?students.map(s=>{const prog=schoolData.programmes.find(p=>p.id===s.programme_id);return`<tr><td>${s.student_id}</td><td><strong>${s.name}</strong></td><td>${s.email||'—'}</td><td>${prog?prog.name:'—'}</td><td><span class="status-badge ${s.approved?'status-active':'status-pending'}">${s.approved?'Active':'Pending'}</span></td><td>${!s.approved?`<button class="btn-success btn-sm" onclick="approveStudent(${s.id})">Approve</button>`:`<button class="btn-danger btn-sm" onclick="removeStudent(${s.id},'${s.name}')">🗑</button>`}</td></tr>`}).join(''):'<tr><td colspan="6" style="text-align:center">No students</td></tr>'}
 async function approveStudent(id){await sb.from('students').update({approved:true}).eq('id',id);showToast('✅ Approved!');await loadAllData()}
 async function removeStudent(id,name){if(!confirm('Remove '+name+'?'))return;await sb.from('enrollments').delete().eq('student_id',id);await sb.from('scores').delete().eq('student_id',id);await sb.from('students').delete().eq('id',id);showToast('🗑 Removed');await loadAllData()}
 
-// Score functions
-async function recordScore(){const sid=document.getElementById('scoreSubject').value,stid=document.getElementById('scoreStudent').value,term=parseInt(document.getElementById('scoreTerm').value),cs=parseFloat(document.getElementById('classScore').value)||0,es=parseFloat(document.getElementById('examScore').value)||0;if(!sid||!stid){showToast('Select subject and student');return}const fs=(cs*0.4)+(es*0.6);await sb.from('scores').insert([{school_id:currentSchool.id,student_id:parseInt(stid),subject_id:parseInt(sid),term,class_score:cs,exam_score:es,final_score:fs}]);showToast('✅ Score recorded!');document.getElementById('classScore').value='';document.getElementById('examScore').value='';await loadAllData()}
-async function renderRecentScores(){const c=document.getElementById('recentScores'),recent=schoolData.scores.slice(0,20);if(recent.length===0){c.innerHTML='<p style="color:var(--text2)">No assessments</p>';return}c.innerHTML=`<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Student</th><th>Subject</th><th>Term</th><th>Final</th><th>Grade</th></tr></thead><tbody>${recent.map(sc=>{const st=schoolData.students.find(s=>s.id===sc.student_id),su=schoolData.subjects.find(s=>s.id===sc.subject_id),g=getGrade(sc.final_score);return`<tr><td>${new Date(sc.date).toLocaleDateString()}</td><td>${st?st.name:'—'}</td><td>${su?su.name:'—'}</td><td>T${sc.term}</td><td><strong>${sc.final_score.toFixed(1)}%</strong></td><td><span class="${g.class}">${g.grade}</span></td></tr>`}).join('')}</tbody></table></div>`}
+// SCORES
+async function recordScore(){const sid=document.getElementById('scoreSubject').value,stid=document.getElementById('scoreStudent').value,t=parseInt(document.getElementById('scoreTerm').value),cs=parseFloat(document.getElementById('classScore').value)||0,es=parseFloat(document.getElementById('examScore').value)||0;if(!sid||!stid){showToast('Select subject and student');return}const fs=(cs*0.4)+(es*0.6);await sb.from('scores').insert([{school_id:currentSchool.id,student_id:parseInt(stid),subject_id:parseInt(sid),term:t,class_score:cs,exam_score:es,final_score:fs}]);showToast('✅ Score recorded!');document.getElementById('classScore').value='';document.getElementById('examScore').value='';await loadAllData()}
+async function renderRecentScores(){const c=document.getElementById('recentScores'),r=schoolData.scores.slice(0,20);c.innerHTML=r.length?`<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Student</th><th>Subject</th><th>Term</th><th>Final</th><th>Grade</th></tr></thead><tbody>${r.map(sc=>{const st=schoolData.students.find(s=>s.id===sc.student_id),su=schoolData.subjects.find(s=>s.id===sc.subject_id),g=getGrade(sc.final_score);return`<tr><td>${new Date(sc.date).toLocaleDateString()}</td><td>${st?st.name:'—'}</td><td>${su?su.name:'—'}</td><td>T${sc.term}</td><td><strong>${sc.final_score.toFixed(1)}%</strong></td><td><span class="${g.class}">${g.grade}</span></td></tr>`}).join('')}</tbody></table></div>`:'<p style="color:var(--text2)">No assessments</p>'}
 
-// Report functions
-function filterReportStudents(){
-    const search=document.getElementById('reportSearchInput').value.trim().toLowerCase();
-    const select=document.getElementById('reportStudent');
-    const students=search?schoolData.students.filter(s=>s.name.toLowerCase().includes(search)||s.student_id.toLowerCase().includes(search)):schoolData.students;
-    select.innerHTML='<option value="">Select Student</option>'+students.filter(s=>s.approved).map(s=>`<option value="${s.id}">${s.name} (${s.student_id})</option>`).join('');
-}
-async function generateReport(){const stid=document.getElementById('reportStudent').value,term=parseInt(document.getElementById('reportTerm').value),c=document.getElementById('reportResult');if(!stid){showToast('Select student');return}const st=schoolData.students.find(s=>s.id===parseInt(stid));if(!st)return;const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===term);let t=0,n=0;let h=`<div class="card" id="reportCard"><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><h3 style="font-weight:700">📋 ${st.name}</h3><small>🆔 ${st.student_id} | Term ${term} | ${new Date().toLocaleDateString()}</small></div><div class="table-wrapper"><table><thead><tr><th>Subject</th><th>Class (40%)</th><th>Exam (60%)</th><th>Final</th><th>Grade</th></tr></thead><tbody>`;ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id),g=getGrade(sc.final_score);t+=sc.final_score;n++;h+=`<tr><td>${su?su.name:'—'}</td><td>${sc.class_score}%</td><td>${sc.exam_score}%</td><td><strong>${sc.final_score.toFixed(1)}%</strong></td><td><span class="${g.class}">${g.grade}</span></td></tr>`});const avg=n>0?(t/n).toFixed(1):0,ov=getGrade(parseFloat(avg));h+=`</tbody></table></div><div style="text-align:center;margin-top:1rem;padding:1rem;background:#e8f5e9;border-radius:.5rem"><h3>Overall: ${avg}%</h3><span class="${ov.class}" style="font-size:1.5rem;padding:8px 20px">${ov.grade}</span></div><div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap"><button class="btn-sm" onclick="window.print()">🖨 Print</button><button class="btn-sm btn-info" onclick="downloadReportPDF('${st.id}',${term})"><i class="fas fa-file-pdf"></i> PDF</button><button class="btn-sm btn-success" onclick="downloadReportExcel('${st.id}',${term})"><i class="fas fa-file-excel"></i> Excel</button></div></div>`;c.innerHTML=h}
+// REPORTS
+function filterReportStudents(){const s=(document.getElementById('reportSearchInput').value||'').trim().toLowerCase();const sel=document.getElementById('reportStudent');const students=s?schoolData.students.filter(st=>st.name.toLowerCase().includes(s)||st.student_id.toLowerCase().includes(s)):schoolData.students;sel.innerHTML='<option value="">Select Student</option>'+students.filter(st=>st.approved).map(st=>`<option value="${st.id}">${st.name} (${st.student_id})</option>`).join('')}
+async function generateReport(){const stid=document.getElementById('reportStudent').value,t=parseInt(document.getElementById('reportTerm').value),c=document.getElementById('reportResult');if(!stid){showToast('Select student');return}const st=schoolData.students.find(s=>s.id===parseInt(stid));if(!st)return;const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===t);let total=0,count=0;let h=`<div class="card"><h3>📋 ${st.name}</h3><p>🆔 ${st.student_id} | Term ${t}</p><div class="table-wrapper"><table><thead><tr><th>Subject</th><th>Class</th><th>Exam</th><th>Final</th><th>Grade</th></tr></thead><tbody>`;ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id),g=getGrade(sc.final_score);total+=sc.final_score;count++;h+=`<tr><td>${su?su.name:'—'}</td><td>${sc.class_score}%</td><td>${sc.exam_score}%</td><td><strong>${sc.final_score.toFixed(1)}%</strong></td><td><span class="${g.class}">${g.grade}</span></td></tr>`});const avg=count>0?(total/count).toFixed(1):0,ov=getGrade(parseFloat(avg));h+=`</tbody></table></div><div style="text-align:center;margin-top:1rem;padding:1rem;background:#e8f5e9;border-radius:.5rem"><h3>Overall: ${avg}%</h3><span class="${ov.class}" style="font-size:1.5rem;padding:8px 20px">${ov.grade}</span></div><div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap"><button class="btn-sm" onclick="window.print()">🖨 Print</button><button class="btn-sm btn-info" onclick="downloadReportPDF('${st.id}',${t})"><i class="fas fa-file-pdf"></i> PDF</button><button class="btn-sm btn-success" onclick="downloadReportExcel('${st.id}',${t})"><i class="fas fa-file-excel"></i> Excel</button><button class="btn-sm btn-email" onclick="sendReportEmail('${st.id}',${t})"><i class="fas fa-envelope"></i> Email</button></div></div>`;c.innerHTML=h}
+async function sendReportEmail(stid,term){const st=schoolData.students.find(s=>s.id===parseInt(stid));if(!st||!st.email){showToast('❌ No email');return}const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===term);let total=0,count=0;let html='<h3>Student Report - '+st.name+'</h3><p>ID: '+st.student_id+' | Term: '+term+'</p><table border="1" style="border-collapse:collapse;width:100%"><tr><th>Subject</th><th>Class</th><th>Exam</th><th>Final</th><th>Grade</th></tr>';ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id),g=getGrade(sc.final_score);total+=sc.final_score;count++;html+='<tr><td>'+(su?su.name:'—')+'</td><td>'+sc.class_score+'%</td><td>'+sc.exam_score+'%</td><td><strong>'+sc.final_score.toFixed(1)+'%</strong></td><td>'+g.grade+'</td></tr>'});html+='</table><h3>Overall: '+(count>0?(total/count).toFixed(1):0)+'%</h3>';try{await emailjs.send('service_u0nogau','template_z1c20a3',{to_email:st.email,to_name:st.name,from_name:currentTeacher.name,subject:'Term '+term+' Report - '+st.name,message:html,school_name:currentSchool.name});showToast('✅ Sent to '+st.email)}catch(e){showToast('❌ Failed')}}
+function downloadReportPDF(stid,term){const{jsPDF}=window.jspdf;const doc=new jsPDF();const st=schoolData.students.find(s=>s.id===parseInt(stid));doc.setFontSize(16);doc.text(st.name+' - Report',10,20);doc.setFontSize(10);const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===term);let y=35;doc.text('Subject | Class | Exam | Final | Grade',10,y);y+=8;ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id);doc.text((su?su.name:'—')+' | '+sc.class_score+'% | '+sc.exam_score+'% | '+sc.final_score.toFixed(1)+'% | '+getGrade(sc.final_score).grade,10,y);y+=7});doc.save('report_'+st.student_id+'_term'+term+'.pdf');showToast('✅ PDF saved!')}
+function downloadReportExcel(stid,term){const st=schoolData.students.find(s=>s.id===parseInt(stid));const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===term);const data=[['Subject','Class','Exam','Final','Grade']];ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id);data.push([su?su.name:'—',sc.class_score,sc.exam_score,sc.final_score.toFixed(1),getGrade(sc.final_score).grade])});const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Report');XLSX.writeFile(wb,'report_'+st.student_id+'_term'+term+'.xlsx');showToast('✅ Excel saved!')}
 
-// Download functions
-function downloadReportPDF(stid,term){
-    const{jsPDF}=window.jspdf;const doc=new jsPDF();const st=schoolData.students.find(s=>s.id===parseInt(stid));
-    doc.setFontSize(16);doc.text('Student Report - '+st.name,10,20);
-    doc.setFontSize(12);doc.text('ID: '+st.student_id+' | Term: '+term,10,30);
-    const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===term);
-    let y=40;doc.setFontSize(10);
-    doc.text('Subject',10,y);doc.text('Class',80,y);doc.text('Exam',110,y);doc.text('Final',140,y);doc.text('Grade',170,y);
-    y+=8;ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id);doc.text(su?su.name:'—',10,y);doc.text(sc.class_score+'%',80,y);doc.text(sc.exam_score+'%',110,y);doc.text(sc.final_score.toFixed(1)+'%',140,y);doc.text(getGrade(sc.final_score).grade,170,y);y+=7});
-    doc.save('report_'+st.student_id+'_term'+term+'.pdf');showToast('✅ PDF downloaded!');
+// CLASS REPORT WITH POSITIONS (GHANA STYLE)
+function buildClassReport(term){
+    const approved=schoolData.students.filter(s=>s.approved);
+    const subs=schoolData.subjects;
+    if(!approved.length)return null;
+    let students=[];
+    approved.forEach(st=>{
+        const ss=schoolData.scores.filter(sc=>sc.student_id===st.id&&sc.term===term);
+        let total=0,cnt=0;let scores={};
+        subs.forEach(su=>{const f=ss.find(sc=>sc.subject_id===su.id);if(f){scores[su.name]={class:f.class_score,exam:f.exam_score,final:f.final_score,grade:getGrade(f.final_score)};total+=f.final_score;cnt++}else{scores[su.name]=null}});
+        students.push({id:st.student_id,name:st.name,email:st.email||'—',subjects:scores,total,count:cnt,avg:cnt>0?(total/cnt).toFixed(1):0,grade:cnt>0?getGrade(total/cnt):{grade:'N/A'}});
+    });
+    students.sort((a,b)=>b.avg-a.avg);
+    students.forEach((s,i)=>{s.position=i+1});
+    return{students,subjects:subs,term};
 }
-function downloadReportExcel(stid,term){
-    const st=schoolData.students.find(s=>s.id===parseInt(stid));const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===term);
-    const data=[['Subject','Class Score (%)','Exam Score (%)','Final Score (%)','Grade']];
-    ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id);data.push([su?su.name:'—',sc.class_score,sc.exam_score,sc.final_score.toFixed(1),getGrade(sc.final_score).grade])});
-    const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Report');
-    XLSX.writeFile(wb,'report_'+st.student_id+'_term'+term+'.xlsx');showToast('✅ Excel downloaded!');
-}
-function downloadPDF(){const doc=new jsPDF();doc.setFontSize(16);doc.text('School Data - '+currentSchool.name,10,20);doc.setFontSize(10);let y=30;doc.text('Students:',10,y);y+=7;schoolData.students.forEach(s=>{doc.text(s.student_id+' - '+s.name+' ('+(s.approved?'Active':'Pending')+')',15,y);y+=6});y+=5;doc.text('Programmes:',10,y);y+=7;schoolData.programmes.forEach(p=>{doc.text(p.name+' ('+p.level+')',15,y);y+=6});y+=5;doc.text('Subjects:',10,y);y+=7;schoolData.subjects.forEach(s=>{doc.text(s.name,15,y);y+=6});doc.save('school_data.pdf');showToast('✅ PDF downloaded!');}
-function downloadExcel(){const data=[['Type','Name','Details']];schoolData.students.forEach(s=>data.push(['Student',s.name,s.student_id+' - '+(s.approved?'Active':'Pending')]));schoolData.programmes.forEach(p=>data.push(['Programme',p.name,p.level]));schoolData.subjects.forEach(s=>data.push(['Subject',s.name,'']));const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Data');XLSX.writeFile(wb,'school_data.xlsx');showToast('✅ Excel downloaded!');}
-function downloadWord(){let h='<html><head><meta charset="UTF-8"></head><body>';h+='<h1>'+currentSchool.name+'</h1>';h+='<h2>Students</h2><ul>';schoolData.students.forEach(s=>h+='<li>'+s.student_id+' - '+s.name+'</li>');h+='</ul><h2>Programmes</h2><ul>';schoolData.programmes.forEach(p=>h+='<li>'+p.name+' ('+p.level+')</li>');h+='</ul><h2>Subjects</h2><ul>';schoolData.subjects.forEach(s=>h+='<li>'+s.name+'</li>');h+='</ul></body></html>';const blob=new Blob([h],{type:'application/msword'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='school_data.doc';a.click();showToast('✅ Word downloaded!');}
+function downloadClassReportPDF(){const t=parseInt(document.getElementById('classReportTerm').value);const r=buildClassReport(t);if(!r||!r.students.length){showToast('No students');return}const{jsPDF}=window.jspdf;const doc=new jsPDF('landscape');doc.setFontSize(14);doc.text(currentSchool.name+' - Term '+t+' Report',10,15);doc.setFontSize(8);let y=25;const headers=['Pos','ID','Name'];r.subjects.forEach(s=>headers.push(s.name.substring(0,6)));headers.push('Total','Avg','Grade');let x=5;const w=[10,20,30];r.subjects.forEach(()=>w.push(25));w.push(20,20,15);doc.setFillColor(230,230,230);headers.forEach((h,i)=>{doc.rect(x,y,w[i],7,'FD');doc.text(h,x+2,y+5);x+=w[i]});y+=8;r.students.forEach((st,i)=>{x=5;const row=[st.position,st.id,st.name.substring(0,15)];r.subjects.forEach(s=>{const sc=st.subjects[s.name];row.push(sc?sc.final.toFixed(1):'—')});row.push(st.total.toFixed(1),st.avg,st.grade.grade);if(i%2===0)doc.setFillColor(245,245,245);row.forEach((val,j)=>{doc.rect(x,y,w[j],7,i%2===0?'FD':'D');doc.text(String(val),x+2,y+5);x+=w[j]});y+=7});doc.save('class_report_term'+t+'.pdf');showToast('✅ PDF saved!')}
+function downloadClassReportExcel(){const t=parseInt(document.getElementById('classReportTerm').value);const r=buildClassReport(t);if(!r||!r.students.length){showToast('No students');return}const headers=['Position','ID','Name','Email'];r.subjects.forEach(s=>{headers.push(s.name+' Class',s.name+' Exam',s.name+' Final',s.name+' Grade')});headers.push('Total','Average','Overall Grade');const data=[headers];r.students.forEach(st=>{const row=[st.position,st.id,st.name,st.email];r.subjects.forEach(s=>{const sc=st.subjects[s.name];if(sc){row.push(sc.class,sc.exam,sc.final,sc.grade.grade)}else{row.push('—','—','—','—')}});row.push(st.total.toFixed(1),st.avg,st.grade.grade);data.push(row)});const ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=headers.map(()=>({wch:15}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Class Report');XLSX.writeFile(wb,'class_report_term'+t+'.xlsx');showToast('✅ Excel saved!')}
+function downloadClassReportWord(){const t=parseInt(document.getElementById('classReportTerm').value);const r=buildClassReport(t);if(!r||!r.students.length){showToast('No students');return}let h='<html><body><h1>'+currentSchool.name+' - Term '+t+' Report</h1><table border="1" style="border-collapse:collapse"><tr><th>Pos</th><th>ID</th><th>Name</th><th>Email</th>';r.subjects.forEach(s=>h+='<th>'+s.name+'</th>');h+='<th>Total</th><th>Avg</th><th>Grade</th></tr>';r.students.forEach(st=>{h+='<tr><td>'+st.position+'</td><td>'+st.id+'</td><td>'+st.name+'</td><td>'+st.email+'</td>';r.subjects.forEach(s=>{const sc=st.subjects[s.name];h+='<td>'+(sc?sc.final.toFixed(1)+'% ('+sc.grade.grade+')':'—')+'</td>'});h+='<td>'+st.total.toFixed(1)+'</td><td>'+st.avg+'%</td><td>'+st.grade.grade+'</td></tr>'});h+='</table></body></html>';const blob=new Blob([h],{type:'application/msword'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='class_report_term'+t+'.doc';a.click();showToast('✅ Word saved!')}
 
-// Settings functions
-async function updateTeacherProfile(){const name=document.getElementById('profileName').value,phone=document.getElementById('profilePhone').value;await sb.from('teachers').update({name,phone}).eq('id',currentTeacher.id);currentTeacher.name=name;currentTeacher.phone=phone;document.getElementById('teacherName').innerHTML=name;showToast('✅ Profile updated!')}
+// SETTINGS
+async function updateTeacherProfile(){const n=document.getElementById('profileName').value,ph=document.getElementById('profilePhone').value;await sb.from('teachers').update({name:n,phone:ph}).eq('id',currentTeacher.id);currentTeacher.name=n;currentTeacher.phone=ph;document.getElementById('teacherName').innerHTML=n;showToast('✅ Updated!')}
 async function changeTeacherPassword(){const cp=document.getElementById('currentPwd').value,np=document.getElementById('newPwd').value,conp=document.getElementById('confirmPwd').value;if(!cp||!np){showToast('Fill fields');return}if(np!==conp){showToast('Mismatch');return}if(np.length<6){showToast('6+ chars');return}if(currentTeacher.password!==hashPassword(cp)){showToast('Wrong password');return}await sb.from('teachers').update({password:hashPassword(np)}).eq('id',currentTeacher.id);currentTeacher.password=hashPassword(np);showToast('🔒 Changed!');document.getElementById('currentPwd').value='';document.getElementById('newPwd').value='';document.getElementById('confirmPwd').value=''}
-async function clearAllData(){if(!confirm('⚠️ Delete ALL data for this school? This cannot be undone!'))return;if(!confirm('ARE YOU ABSOLUTELY SURE?'))return;await sb.from('scores').delete().eq('school_id',currentSchool.id);await sb.from('enrollments').delete().eq('student_id',currentSchool.id);await sb.from('students').delete().eq('school_id',currentSchool.id);await sb.from('subjects').delete().eq('school_id',currentSchool.id);await sb.from('programmes').delete().eq('school_id',currentSchool.id);schoolData={programmes:[],subjects:[],students:[],scores:[]};showToast('🗑 All data cleared!');await loadAllData()}
+async function clearAllData(){if(!confirm('⚠️ Delete ALL data? This cannot be undone!'))return;if(!confirm('ARE YOU SURE?'))return;await sb.from('scores').delete().eq('school_id',currentSchool.id);await sb.from('enrollments').delete().eq('student_id',currentSchool.id);await sb.from('students').delete().eq('school_id',currentSchool.id);await sb.from('subjects').delete().eq('school_id',currentSchool.id);await sb.from('programmes').delete().eq('school_id',currentSchool.id);schoolData={programmes:[],subjects:[],students:[],scores:[]};showToast('🗑 All cleared!');await loadAllData()}
 
 function populateDropdowns(){
     document.getElementById('scoreSubject').innerHTML='<option value="">Select Subject</option>'+schoolData.subjects.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
@@ -322,7 +267,7 @@ function populateDropdowns(){
 }
 function showTab(tab,evt){['programmes','subjects','students','scores','reports','settings'].forEach(t=>document.getElementById(t+'Tab').style.display='none');document.getElementById(tab+'Tab').style.display='block';document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(evt&&evt.target)evt.target.classList.add('active')}
 function logout(){currentTeacher=null;currentSchool=null;sessionStorage.removeItem('teacher_session');document.getElementById('dashboardSection').style.display='none';document.getElementById('loginSection').style.display='block';showToast('👋 Logged out')}
-async function checkSession(){const session=sessionStorage.getItem('teacher_session');if(session){const sess=JSON.parse(session);const{data:teacher}=await sb.from('teachers').select('*').eq('id',sess.id).single();if(teacher){const{data:school}=await sb.from('schools').select('*').eq('id',teacher.school_id).single();if(school&&school.is_active){currentTeacher=teacher;currentSchool=school;document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';document.getElementById('schoolName').innerHTML=school.name;document.getElementById('teacherName').innerHTML=teacher.name;document.getElementById('profileName').value=teacher.name;document.getElementById('profileEmail').value=teacher.email;document.getElementById('profilePhone').value=teacher.phone||'';await loadAllData();return}}}sessionStorage.removeItem('teacher_session')}
+async function checkSession(){const s=sessionStorage.getItem('teacher_session');if(s){const sess=JSON.parse(s);const{data:teacher}=await sb.from('teachers').select('*').eq('id',sess.id).single();if(teacher){const{data:school}=await sb.from('schools').select('*').eq('id',teacher.school_id).single();if(school&&school.is_active){currentTeacher=teacher;currentSchool=school;document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';document.getElementById('schoolName').innerHTML=school.name;document.getElementById('teacherName').innerHTML=teacher.name;document.getElementById('profileName').value=teacher.name;document.getElementById('profileEmail').value=teacher.email;document.getElementById('profilePhone').value=teacher.phone||'';await loadAllData();return}}}sessionStorage.removeItem('teacher_session')}
 checkSession();
 </script>
 </body>
