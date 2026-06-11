@@ -22,7 +22,7 @@
         .form-group label{display:block;font-weight:600;margin-bottom:.4rem;color:var(--text);font-size:clamp(0.8rem,1.2vw,0.9rem)}
         .form-group input{width:100%;padding:clamp(0.6rem,1vw,0.8rem);border:1px solid var(--border);border-radius:.5rem;font-size:clamp(0.85rem,1.2vw,1rem);background:var(--card-bg);color:var(--text);font-family:'Inter',sans-serif}
         .form-group input:focus{outline:none;border-color:#c8960a}
-        .btn{background:#c8960a;background:linear-gradient(225deg,#8db355,#e0c87a);color:white;border:none;padding:clamp(0.6rem,1.2vw,0.8rem) clamp(1rem,2vw,1.5rem);border-radius:.5rem;cursor:pointer;font-weight:600;width:100%;font-size:clamp(0.85rem,1.3vw,1rem);font-family:'Inter',sans-serif;letter-spacing:0.2px;appearance:none;-webkit-appearance:none}
+        .btn{background:#c8960a;background:linear-gradient(225deg,#8db355,#e0c87a);color:white;border:none;padding:clamp(0.6rem,1.2vw,0.8rem) clamp(1rem,2vw,1.5rem);border-radius:.5rem;cursor:pointer;font-weight:600;width:100%;font-size:clamp(0.85rem,1.3vw,1rem);font-family:'Inter',sans-serif;letter-spacing:0.2px;-webkit-appearance:none}
         .btn:hover{transform:translateY(-2px)}
         .btn-outline{background:transparent;border:2px solid #c8960a;color:#c8960a;width:auto}
         .btn-danger{background:linear-gradient(135deg,#e74c3c,#c0392b);width:auto;color:white}
@@ -157,13 +157,15 @@ async function activateSchool(){
         const duration=school.license_duration||365;
         const expiry=new Date(Date.now()+duration*24*60*60*1000).toISOString();
         await sb.from('schools').update({is_active:true,license_expiry:expiry}).eq('id',school.id);
-        const{data:existingHM}=await sb.from('headmasters').select('id').eq('email',email);
-        if(existingHM&&existingHM.length>0){
-            const{error:updateError}=await sb.from('headmasters').update({school_id:school.id,name:headmasterName,phone:phone,password:hashPassword(pw)}).eq('email',email);
-            if(updateError){err.innerHTML='❌ Update failed: '+escapeHtml(updateError.message);err.style.display='block';return}
-        }else{
-            const{error:headError}=await sb.from('headmasters').insert([{school_id:school.id,name:headmasterName,email:email,phone:phone,password:hashPassword(pw)}]);
-            if(headError){err.innerHTML='❌ Insert failed: '+escapeHtml(headError.message);err.style.display='block';return}
+        const{error:headError}=await sb.from('headmasters').insert([{school_id:school.id,name:headmasterName,email:email,phone:phone,password:hashPassword(pw)}]);
+        if(headError){
+            if(headError.code==='23505'){
+                // Email already exists (e.g. RLS hid it from a pre-check) - update that record instead
+                const{error:updateError}=await sb.from('headmasters').update({school_id:school.id,name:headmasterName,phone:phone,password:hashPassword(pw)}).eq('email',email);
+                if(updateError){err.innerHTML='❌ Update failed: '+escapeHtml(updateError.message);err.style.display='block';return}
+            }else{
+                err.innerHTML='❌ Insert failed: '+escapeHtml(headError.message);err.style.display='block';return
+            }
         }
         succ.innerHTML='✅ School activated! Redirecting to login...';succ.style.display='block';
         setTimeout(()=>{showLogin();document.getElementById('loginEmail').value=email;succ.style.display='none'},2000);
