@@ -22,7 +22,7 @@
         .form-group label{display:block;font-weight:600;margin-bottom:.4rem;color:var(--text);font-size:clamp(0.8rem,1.2vw,0.9rem)}
         .form-group input{width:100%;padding:clamp(0.6rem,1vw,0.8rem);border:1px solid var(--border);border-radius:.5rem;font-size:clamp(0.85rem,1.2vw,1rem);background:var(--card-bg);color:var(--text);font-family:'Inter',sans-serif}
         .form-group input:focus{outline:none;border-color:#c8960a}
-        .btn{background:#c8960a;background:linear-gradient(225deg,#8db355,#e0c87a);color:white;border:none;padding:clamp(0.6rem,1.2vw,0.8rem) clamp(1rem,2vw,1.5rem);border-radius:.5rem;cursor:pointer;font-weight:600;width:100%;font-size:clamp(0.85rem,1.3vw,1rem);font-family:'Inter',sans-serif;letter-spacing:0.2px;-webkit-appearance:none}
+        .btn{background:#c8960a;background:linear-gradient(225deg,#8db355,#e0c87a);color:white;border:none;padding:clamp(0.6rem,1.2vw,0.8rem) clamp(1rem,2vw,1.5rem);border-radius:.5rem;cursor:pointer;font-weight:600;width:100%;font-size:clamp(0.85rem,1.3vw,1rem);font-family:'Inter',sans-serif;letter-spacing:0.2px;appearance:none;-webkit-appearance:none}
         .btn:hover{transform:translateY(-2px)}
         .btn-outline{background:transparent;border:2px solid #c8960a;color:#c8960a;width:auto}
         .btn-danger{background:linear-gradient(135deg,#e74c3c,#c0392b);width:auto;color:white}
@@ -100,7 +100,7 @@
             <div class="stat-card"><div class="stat-number" id="subjectCount">0</div><div class="stat-label">Subjects</div></div>
         </div>
         <div class="card">
-            <div class="tabs"><button class="tab active" onclick="showTab('teachers')">👨‍🏫 Teachers</button><button class="tab" onclick="showTab('settings')">⚙️ Settings</button></div>
+            <div class="tabs"><button class="tab active" onclick="showTab('teachers', event)">👨‍🏫 Teachers</button><button class="tab" onclick="showTab('settings', event)">⚙️ Settings</button></div>
             <div id="teachersTab">
                 <h3 style="font-weight:700;margin-bottom:1rem;font-size:clamp(0.9rem,1.3vw,1.1rem)">Add Teacher</h3>
                 <div class="flex-row" style="margin-bottom:1rem">
@@ -135,6 +135,7 @@
 <script>
 let currentHeadmaster=null,currentSchool=null;
 function hashPassword(pw){const s='SchoolSync_GH_2024';return btoa(btoa(pw+s).split('').reverse().join('')+s)}
+function escapeHtml(str){return String(str==null?'':str).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function showToast(msg){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('toast');setTimeout(()=>t.classList.remove('toast'),3000)}
 function toggleDarkMode(){document.body.classList.toggle('dark-mode');localStorage.setItem('darkMode',document.body.classList.contains('dark-mode'))}
 if(localStorage.getItem('darkMode')==='true')document.body.classList.add('dark-mode');
@@ -152,35 +153,59 @@ async function activateSchool(){
         const{data:school,error:schoolError}=await sb.from('schools').select('*').eq('activation_code',code).single();
         if(schoolError||!school){err.innerHTML='❌ Invalid activation code';err.style.display='block';return}
         if(school.is_active){err.innerHTML='❌ Already activated. <a href="#" onclick="showLogin()">Login</a>';err.style.display='block';return}
-        if(school.name.toLowerCase()!==name.toLowerCase()){err.innerHTML='❌ Name mismatch. Code is for "'+school.name+'"';err.style.display='block';return}
-        const expiry=new Date(Date.now()+school.license_duration*24*60*60*1000).toISOString();
+        if(school.name.toLowerCase()!==name.toLowerCase()){err.innerHTML='❌ Name mismatch. Code is for "'+escapeHtml(school.name)+'"';err.style.display='block';return}
+        const duration=school.license_duration||365;
+        const expiry=new Date(Date.now()+duration*24*60*60*1000).toISOString();
         await sb.from('schools').update({is_active:true,license_expiry:expiry}).eq('id',school.id);
         const{data:existingHM}=await sb.from('headmasters').select('id').eq('email',email);
         if(existingHM&&existingHM.length>0){
             const{error:updateError}=await sb.from('headmasters').update({school_id:school.id,name:headmasterName,phone:phone,password:hashPassword(pw)}).eq('email',email);
-            if(updateError){err.innerHTML='❌ Update failed: '+updateError.message;err.style.display='block';return}
+            if(updateError){err.innerHTML='❌ Update failed: '+escapeHtml(updateError.message);err.style.display='block';return}
         }else{
             const{error:headError}=await sb.from('headmasters').insert([{school_id:school.id,name:headmasterName,email:email,phone:phone,password:hashPassword(pw)}]);
-            if(headError){err.innerHTML='❌ Insert failed: '+headError.message;err.style.display='block';return}
+            if(headError){err.innerHTML='❌ Insert failed: '+escapeHtml(headError.message);err.style.display='block';return}
         }
         succ.innerHTML='✅ School activated! Redirecting to login...';succ.style.display='block';
         setTimeout(()=>{showLogin();document.getElementById('loginEmail').value=email;succ.style.display='none'},2000);
-    }catch(error){err.innerHTML='❌ Error: '+error.message;err.style.display='block'}
+    }catch(error){err.innerHTML='❌ Error: '+escapeHtml(error.message);err.style.display='block'}
 }
 
-async function login(){const email=document.getElementById('loginEmail').value.trim(),pw=document.getElementById('loginPassword').value,err=document.getElementById('loginError');err.style.display='none';if(!email||!pw){err.innerHTML='❌ Fill all fields';err.style.display='block';return}const{data:headmaster,error}=await sb.from('headmasters').select('*,schools(*)').eq('email',email).single();if(error||!headmaster||headmaster.password!==hashPassword(pw)){err.innerHTML='❌ Invalid credentials';err.style.display='block';return}if(!headmaster.schools.is_active){err.innerHTML='❌ School not activated';err.style.display='block';return}currentHeadmaster=headmaster;currentSchool=headmaster.schools;sessionStorage.setItem('headmaster_session',JSON.stringify({id:headmaster.id,schoolId:headmaster.school_id,name:headmaster.name,email:headmaster.email}));showDashboard()}
-async function showDashboard(){document.getElementById('activationSection').style.display='none';document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';document.getElementById('schoolName').innerHTML=currentSchool.name;document.getElementById('profileSchoolName').value=currentSchool.name;document.getElementById('profileHeadmasterName').value=currentHeadmaster.name;document.getElementById('profileEmail').value=currentHeadmaster.email;document.getElementById('profilePhone').value=currentHeadmaster.phone||'';if(currentSchool.license_expiry){const days=Math.ceil((new Date(currentSchool.license_expiry)-new Date())/(1000*60*60*24));document.getElementById('licenseBanner').innerHTML='✅ Active | Code: '+currentSchool.activation_code+' | Expires: '+new Date(currentSchool.license_expiry).toLocaleDateString()+' | <strong>'+days+' days</strong>'}await loadStats();await loadTeachers()}
+async function login(){const email=document.getElementById('loginEmail').value.trim(),pw=document.getElementById('loginPassword').value,err=document.getElementById('loginError');err.style.display='none';if(!email||!pw){err.innerHTML='❌ Fill all fields';err.style.display='block';return}const{data:headmaster,error}=await sb.from('headmasters').select('*,schools(*)').eq('email',email).single();if(error||!headmaster||headmaster.password!==hashPassword(pw)){err.innerHTML='❌ Invalid credentials';err.style.display='block';return}if(!headmaster.schools||!headmaster.schools.is_active){err.innerHTML='❌ School not activated';err.style.display='block';return}currentHeadmaster=headmaster;currentSchool=headmaster.schools;sessionStorage.setItem('headmaster_session',JSON.stringify({id:headmaster.id,schoolId:headmaster.school_id,name:headmaster.name,email:headmaster.email}));showDashboard()}
+async function showDashboard(){document.getElementById('activationSection').style.display='none';document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';document.getElementById('schoolName').innerText=currentSchool.name;document.getElementById('profileSchoolName').value=currentSchool.name;document.getElementById('profileHeadmasterName').value=currentHeadmaster.name;document.getElementById('profileEmail').value=currentHeadmaster.email;document.getElementById('profilePhone').value=currentHeadmaster.phone||'';if(currentSchool.license_expiry){const days=Math.ceil((new Date(currentSchool.license_expiry)-new Date())/(1000*60*60*24));document.getElementById('licenseBanner').innerHTML='✅ Active | Code: '+escapeHtml(currentSchool.activation_code)+' | Expires: '+new Date(currentSchool.license_expiry).toLocaleDateString()+' | <strong>'+days+' days</strong>'}await loadStats();await loadTeachers()}
 async function loadStats(){const{count:tc}=await sb.from('teachers').select('*',{count:'exact',head:true}).eq('school_id',currentSchool.id);document.getElementById('teacherCount').innerText=tc||0;const{count:sc}=await sb.from('students').select('*',{count:'exact',head:true}).eq('school_id',currentSchool.id);document.getElementById('studentCount').innerText=sc||0;const{count:pc}=await sb.from('programmes').select('*',{count:'exact',head:true}).eq('school_id',currentSchool.id);document.getElementById('programmeCount').innerText=pc||0;const{count:sjc}=await sb.from('subjects').select('*',{count:'exact',head:true}).eq('school_id',currentSchool.id);document.getElementById('subjectCount').innerText=sjc||0}
 async function addTeacher(){const name=document.getElementById('teacherName').value.trim(),email=document.getElementById('teacherEmail').value.trim(),phone=document.getElementById('teacherPhone').value.trim();if(!name||!email){showToast('⚠️ Fill name and email');return}const{error}=await sb.from('teachers').insert([{school_id:currentSchool.id,name:name,email:email,phone:phone,password:hashPassword('teacher123')}]);if(error){showToast(error.code==='23505'?'❌ Email exists':'❌ Failed');return}showToast('✅ Teacher added! PW: teacher123');document.getElementById('teacherName').value='';document.getElementById('teacherEmail').value='';document.getElementById('teacherPhone').value='';await loadTeachers();await loadStats()}
-async function loadTeachers(){const search=document.getElementById('teacherSearchInput').value.trim().toLowerCase();let query=sb.from('teachers').select('*').eq('school_id',currentSchool.id).order('name');if(search)query=query.or('name.ilike.%'+search+'%,email.ilike.%'+search+'%');const{data:teachers}=await query,tbody=document.getElementById('teachersTableBody');if(!teachers||teachers.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center">No teachers</td></tr>';return}tbody.innerHTML=teachers.map(t=>'<tr><td><strong>'+t.name+'</strong></td><td>'+t.email+'</td><td>'+(t.phone||'—')+'</td><td><span class="status-badge status-active">Active</span></td><td><button class="btn-sm btn-outline" onclick="viewCreds(\''+t.email+'\',\''+t.name+'\')"><i class="fas fa-envelope"></i></button> <button class="btn-sm btn-danger" onclick="removeTeacher('+t.id+',\''+t.name+'\')"><i class="fas fa-trash"></i></button></td></tr>').join('')}
+async function loadTeachers(){
+    const search=document.getElementById('teacherSearchInput').value.trim().toLowerCase();
+    let query=sb.from('teachers').select('*').eq('school_id',currentSchool.id).order('name');
+    if(search)query=query.or('name.ilike.%'+search+'%,email.ilike.%'+search+'%');
+    const{data:teachers}=await query,tbody=document.getElementById('teachersTableBody');
+    if(!teachers||teachers.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center">No teachers</td></tr>';return}
+    tbody.innerHTML=teachers.map(t=>'<tr><td><strong>'+escapeHtml(t.name)+'</strong></td><td>'+escapeHtml(t.email)+'</td><td>'+escapeHtml(t.phone||'—')+'</td><td><span class="status-badge status-active">Active</span></td><td>'
+        +'<button class="btn-sm btn-outline view-creds-btn" data-email="'+escapeHtml(t.email)+'" data-name="'+escapeHtml(t.name)+'"><i class="fas fa-envelope"></i></button> '
+        +'<button class="btn-sm btn-danger remove-teacher-btn" data-id="'+escapeHtml(t.id)+'" data-name="'+escapeHtml(t.name)+'"><i class="fas fa-trash"></i></button>'
+        +'</td></tr>').join('');
+    tbody.querySelectorAll('.view-creds-btn').forEach(btn=>btn.addEventListener('click',()=>viewCreds(btn.dataset.email,btn.dataset.name)));
+    tbody.querySelectorAll('.remove-teacher-btn').forEach(btn=>btn.addEventListener('click',()=>removeTeacher(btn.dataset.id,btn.dataset.name)));
+}
 function viewCreds(email,name){alert('📋 '+name+'\nEmail: '+email+'\nPassword: teacher123')}
 async function removeTeacher(id,name){if(!confirm('Remove '+name+'?'))return;await sb.from('teachers').delete().eq('id',id);showToast('🗑 Teacher removed');await loadTeachers();await loadStats()}
 async function updateProfile(){const name=document.getElementById('profileHeadmasterName').value,phone=document.getElementById('profilePhone').value;await sb.from('headmasters').update({name,phone}).eq('id',currentHeadmaster.id);currentHeadmaster.name=name;currentHeadmaster.phone=phone;showToast('✅ Updated!')}
-async function changePassword(){const cp=document.getElementById('currentPwd').value,np=document.getElementById('newPwd').value,conp=document.getElementById('confirmPwd').value;if(!cp||!np){showToast('Fill fields');return}if(np!==conp){showToast('Mismatch');return}if(np.length<6){showToast('6+ chars');return}if(currentHeadmaster.password!==hashPassword(cp)){showToast('Wrong password');return}await sb.from('headmasters').update({password:hashPassword(np)}).eq('id',currentHeadmaster.id);showToast('🔒 Changed!');document.getElementById('currentPwd').value='';document.getElementById('newPwd').value='';document.getElementById('confirmPwd').value=''}
-function showTab(tab){document.getElementById('teachersTab').style.display=tab==='teachers'?'block':'none';document.getElementById('settingsTab').style.display=tab==='settings'?'block':'none';document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));event.target.classList.add('active')}
+async function changePassword(){const cp=document.getElementById('currentPwd').value,np=document.getElementById('newPwd').value,conp=document.getElementById('confirmPwd').value;if(!cp||!np){showToast('Fill fields');return}if(np!==conp){showToast('Mismatch');return}if(np.length<6){showToast('6+ chars');return}if(currentHeadmaster.password!==hashPassword(cp)){showToast('Wrong password');return}await sb.from('headmasters').update({password:hashPassword(np)}).eq('id',currentHeadmaster.id);currentHeadmaster.password=hashPassword(np);showToast('🔒 Changed!');document.getElementById('currentPwd').value='';document.getElementById('newPwd').value='';document.getElementById('confirmPwd').value=''}
+function showTab(tab,evt){document.getElementById('teachersTab').style.display=tab==='teachers'?'block':'none';document.getElementById('settingsTab').style.display=tab==='settings'?'block':'none';document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(evt&&evt.target)evt.target.classList.add('active')}
 async function refreshDashboard(){await loadStats();await loadTeachers();showToast('Refreshed!')}
 function logout(){currentHeadmaster=null;currentSchool=null;sessionStorage.removeItem('headmaster_session');showLogin();showToast('👋 Logged out')}
-async function checkSession(){const session=sessionStorage.getItem('headmaster_session');if(session){const sess=JSON.parse(session);const{data:headmaster}=await sb.from('headmasters').select('*,schools(*)').eq('id',sess.id).single();if(headmaster&&headmaster.schools.is_active){currentHeadmaster=headmaster;currentSchool=headmaster.schools;showDashboard()}else{sessionStorage.removeItem('headmaster_session')}}}
+async function checkSession(){
+    const session=sessionStorage.getItem('headmaster_session');
+    if(session){
+        const sess=JSON.parse(session);
+        const{data:headmaster}=await sb.from('headmasters').select('*,schools(*)').eq('id',sess.id).single();
+        if(headmaster&&headmaster.schools&&headmaster.schools.is_active){
+            currentHeadmaster=headmaster;currentSchool=headmaster.schools;showDashboard()
+        }else{
+            sessionStorage.removeItem('headmaster_session')
+        }
+    }
+}
 checkSession();
 </script>
 </body>
