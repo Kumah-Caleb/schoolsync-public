@@ -236,6 +236,15 @@ function downloadReportPDF(stid,term){const{jsPDF}=window.jspdf;const doc=new js
 function downloadReportExcel(stid,term){const st=schoolData.students.find(s=>s.id===parseInt(stid));const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===term);const data=[['Subject','Class','Exam','Final','Grade']];ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id);data.push([su?su.name:'—',sc.class_score,sc.exam_score,sc.final_score.toFixed(1),getGrade(sc.final_score).grade])});const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Report');XLSX.writeFile(wb,'report_'+st.student_id+'_term'+term+'.xlsx');showToast('✅ Excel saved!')}
 
 // CLASS REPORT WITH POSITIONS (GHANA STYLE)
+// Format position with superscript (1ST, 2ND, 3RD, 4TH, etc.)
+function formatPosition(pos) {
+    if (pos === 1) return '1ST';
+    if (pos === 2) return '2ND';
+    if (pos === 3) return '3RD';
+    return pos + 'TH';
+}
+
+// CLASS REPORT WITH POSITIONS (GHANA STYLE)
 function buildClassReport(term){
     const approved=schoolData.students.filter(s=>s.approved);
     const subs=schoolData.subjects;
@@ -248,13 +257,98 @@ function buildClassReport(term){
         students.push({id:st.student_id,name:st.name,email:st.email||'—',subjects:scores,total,count:cnt,avg:cnt>0?(total/cnt).toFixed(1):0,grade:cnt>0?getGrade(total/cnt):{grade:'N/A'}});
     });
     students.sort((a,b)=>b.avg-a.avg);
-    students.forEach((s,i)=>{s.position=i+1});
+    students.forEach((s,i)=>{s.position=i+1;s.positionText=formatPosition(i+1)});
     return{students,subjects:subs,term};
 }
-function downloadClassReportPDF(){const t=parseInt(document.getElementById('classReportTerm').value);const r=buildClassReport(t);if(!r||!r.students.length){showToast('No students');return}const{jsPDF}=window.jspdf;const doc=new jsPDF('landscape');doc.setFontSize(14);doc.text(currentSchool.name+' - Term '+t+' Report',10,15);doc.setFontSize(8);let y=25;const headers=['Pos','ID','Name'];r.subjects.forEach(s=>headers.push(s.name.substring(0,6)));headers.push('Total','Avg','Grade');let x=5;const w=[10,20,30];r.subjects.forEach(()=>w.push(25));w.push(20,20,15);doc.setFillColor(230,230,230);headers.forEach((h,i)=>{doc.rect(x,y,w[i],7,'FD');doc.text(h,x+2,y+5);x+=w[i]});y+=8;r.students.forEach((st,i)=>{x=5;const row=[st.position,st.id,st.name.substring(0,15)];r.subjects.forEach(s=>{const sc=st.subjects[s.name];row.push(sc?sc.final.toFixed(1):'—')});row.push(st.total.toFixed(1),st.avg,st.grade.grade);if(i%2===0)doc.setFillColor(245,245,245);row.forEach((val,j)=>{doc.rect(x,y,w[j],7,i%2===0?'FD':'D');doc.text(String(val),x+2,y+5);x+=w[j]});y+=7});doc.save('class_report_term'+t+'.pdf');showToast('✅ PDF saved!')}
-function downloadClassReportExcel(){const t=parseInt(document.getElementById('classReportTerm').value);const r=buildClassReport(t);if(!r||!r.students.length){showToast('No students');return}const headers=['Position','ID','Name','Email'];r.subjects.forEach(s=>{headers.push(s.name+' Class',s.name+' Exam',s.name+' Final',s.name+' Grade')});headers.push('Total','Average','Overall Grade');const data=[headers];r.students.forEach(st=>{const row=[st.position,st.id,st.name,st.email];r.subjects.forEach(s=>{const sc=st.subjects[s.name];if(sc){row.push(sc.class,sc.exam,sc.final,sc.grade.grade)}else{row.push('—','—','—','—')}});row.push(st.total.toFixed(1),st.avg,st.grade.grade);data.push(row)});const ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=headers.map(()=>({wch:15}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Class Report');XLSX.writeFile(wb,'class_report_term'+t+'.xlsx');showToast('✅ Excel saved!')}
-function downloadClassReportWord(){const t=parseInt(document.getElementById('classReportTerm').value);const r=buildClassReport(t);if(!r||!r.students.length){showToast('No students');return}let h='<html><body><h1>'+currentSchool.name+' - Term '+t+' Report</h1><table border="1" style="border-collapse:collapse"><tr><th>Pos</th><th>ID</th><th>Name</th><th>Email</th>';r.subjects.forEach(s=>h+='<th>'+s.name+'</th>');h+='<th>Total</th><th>Avg</th><th>Grade</th></tr>';r.students.forEach(st=>{h+='<tr><td>'+st.position+'</td><td>'+st.id+'</td><td>'+st.name+'</td><td>'+st.email+'</td>';r.subjects.forEach(s=>{const sc=st.subjects[s.name];h+='<td>'+(sc?sc.final.toFixed(1)+'% ('+sc.grade.grade+')':'—')+'</td>'});h+='<td>'+st.total.toFixed(1)+'</td><td>'+st.avg+'%</td><td>'+st.grade.grade+'</td></tr>'});h+='</table></body></html>';const blob=new Blob([h],{type:'application/msword'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='class_report_term'+t+'.doc';a.click();showToast('✅ Word saved!')}
 
+function downloadClassReportPDF(){
+    const t=parseInt(document.getElementById('classReportTerm').value);
+    const r=buildClassReport(t);
+    if(!r||!r.students.length){showToast('No students');return}
+    const{jsPDF}=window.jspdf;
+    const doc=new jsPDF('landscape');
+    doc.setFontSize(14);
+    doc.text(currentSchool.name+' - Term '+t+' Report',10,15);
+    doc.setFontSize(8);
+    let y=25;
+    const headers=['Pos','ID','Name'];
+    r.subjects.forEach(s=>headers.push(s.name.substring(0,8)));
+    headers.push('Total','Avg','Grade');
+    let x=5;
+    const w=[18,25,35];
+    r.subjects.forEach(()=>w.push(22));
+    w.push(22,20,18);
+    doc.setFillColor(230,230,230);
+    headers.forEach((h,i)=>{doc.rect(x,y,w[i],7,'FD');doc.text(h,x+2,y+5);x+=w[i]});
+    y+=8;
+    r.students.forEach((st,i)=>{
+        x=5;
+        const row=[st.positionText,st.id,st.name.substring(0,18)];
+        r.subjects.forEach(s=>{const sc=st.subjects[s.name];row.push(sc?sc.final.toFixed(1):'—')});
+        row.push(st.total.toFixed(1),st.avg,st.grade.grade);
+        if(i%2===0)doc.setFillColor(245,245,245);
+        row.forEach((val,j)=>{
+            doc.rect(x,y,w[j],7,i%2===0?'FD':'D');
+            doc.text(String(val),x+2,y+5);
+            x+=w[j];
+        });
+        y+=7;
+    });
+    doc.save('class_report_term'+t+'.pdf');
+    showToast('✅ PDF saved!');
+}
+
+function downloadClassReportExcel(){
+    const t=parseInt(document.getElementById('classReportTerm').value);
+    const r=buildClassReport(t);
+    if(!r||!r.students.length){showToast('No students');return}
+    const headers=['Position','ID','Name','Email'];
+    r.subjects.forEach(s=>{headers.push(s.name+' Class',s.name+' Exam',s.name+' Final',s.name+' Grade')});
+    headers.push('Total','Average','Overall Grade');
+    const data=[headers];
+    r.students.forEach(st=>{
+        const row=[st.positionText,st.id,st.name,st.email];
+        r.subjects.forEach(s=>{
+            const sc=st.subjects[s.name];
+            if(sc){row.push(sc.class,sc.exam,sc.final,sc.grade.grade)}else{row.push('—','—','—','—')}
+        });
+        row.push(st.total.toFixed(1),st.avg,st.grade.grade);
+        data.push(row);
+    });
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=headers.map(()=>({wch:14}));
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Class Report');
+    XLSX.writeFile(wb,'class_report_term'+t+'.xlsx');
+    showToast('✅ Excel saved!');
+}
+
+function downloadClassReportWord(){
+    const t=parseInt(document.getElementById('classReportTerm').value);
+    const r=buildClassReport(t);
+    if(!r||!r.students.length){showToast('No students');return}
+    let h='<html><head><meta charset="UTF-8"></head><body>';
+    h+='<h1>'+currentSchool.name+' - Term '+t+' Report</h1>';
+    h+='<table border="1" style="border-collapse:collapse;font-size:11px">';
+    h+='<tr style="background:#e0e0e0"><th>Pos</th><th>ID</th><th>Name</th><th>Email</th>';
+    r.subjects.forEach(s=>h+='<th>'+s.name+'</th>');
+    h+='<th>Total</th><th>Avg</th><th>Grade</th></tr>';
+    r.students.forEach(st=>{
+        h+='<tr><td><strong>'+st.positionText+'</strong></td><td>'+st.id+'</td><td>'+st.name+'</td><td>'+st.email+'</td>';
+        r.subjects.forEach(s=>{
+            const sc=st.subjects[s.name];
+            h+='<td>'+(sc?sc.final.toFixed(1)+'% <small>('+sc.grade.grade+')</small>':'—')+'</td>';
+        });
+        h+='<td><strong>'+st.total.toFixed(1)+'</strong></td><td>'+st.avg+'%</td><td><strong>'+st.grade.grade+'</strong></td></tr>';
+    });
+    h+='</table></body></html>';
+    const blob=new Blob([h],{type:'application/msword'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='class_report_term'+t+'.doc';
+    a.click();
+    showToast('✅ Word saved!');
+}
 // SETTINGS
 async function updateTeacherProfile(){const n=document.getElementById('profileName').value,ph=document.getElementById('profilePhone').value;await sb.from('teachers').update({name:n,phone:ph}).eq('id',currentTeacher.id);currentTeacher.name=n;currentTeacher.phone=ph;document.getElementById('teacherName').innerHTML=n;showToast('✅ Updated!')}
 async function changeTeacherPassword(){const cp=document.getElementById('currentPwd').value,np=document.getElementById('newPwd').value,conp=document.getElementById('confirmPwd').value;if(!cp||!np){showToast('Fill fields');return}if(np!==conp){showToast('Mismatch');return}if(np.length<6){showToast('6+ chars');return}if(currentTeacher.password!==hashPassword(cp)){showToast('Wrong password');return}await sb.from('teachers').update({password:hashPassword(np)}).eq('id',currentTeacher.id);currentTeacher.password=hashPassword(np);showToast('🔒 Changed!');document.getElementById('currentPwd').value='';document.getElementById('newPwd').value='';document.getElementById('confirmPwd').value=''}
