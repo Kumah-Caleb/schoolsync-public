@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{
@@ -228,7 +230,7 @@
                     <button class="toggle-pwd" onclick="togglePassword('loginPassword',this)"><i class="fas fa-eye"></i></button>
                 </div>
             </div>
-            <button class="btn btn-primary" onclick="loginUser()" style="width:100%;margin-top:.5rem"><i class="fas fa-sign-in-alt"></i> Login</button>
+            <button class="btn btn-primary" id="loginBtn" onclick="loginUser()" style="width:100%;margin-top:.5rem"><i class="fas fa-sign-in-alt"></i> Login</button>
             <div class="modal-switch">
                 <p style="color:#aaa;">Don't have an account? <a onclick="closeModal('loginModal');openModal('registerModal')">Sign Up →</a></p>
             </div>
@@ -258,7 +260,7 @@
                 <label>Confirm Password *</label>
                 <input type="password" id="regConfirmPassword" placeholder="Confirm your password">
             </div>
-            <button class="btn btn-register" onclick="registerUser()" style="width:100%;margin-top:.5rem"><i class="fas fa-user-plus"></i> Sign Up</button>
+            <button class="btn btn-register" id="registerBtn" onclick="registerUser()" style="width:100%;margin-top:.5rem"><i class="fas fa-user-plus"></i> Sign Up</button>
             <div class="modal-switch">
                 <p style="color:#aaa;">Already have an account? <a onclick="closeModal('registerModal');openModal('loginModal')">Login →</a></p>
             </div>
@@ -287,6 +289,10 @@
 <script>
 (function(){emailjs.init("CVzkW-GV4NwfsF5GU")})();
 
+// Same hashing scheme used by the headmaster portal, for consistency
+function hashPassword(pw){const s='SchoolSync_GH_2024';return btoa(btoa(pw+s).split('').reverse().join('')+s)}
+function escapeHtml(str){return String(str==null?'':str).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
 function openModal(id){document.getElementById(id).classList.add('active')}
 function closeModal(id){document.getElementById(id).classList.remove('active')}
 window.onclick=function(e){if(e.target.classList.contains('modal'))e.target.classList.remove('active')}
@@ -295,16 +301,16 @@ function showToast(message,type='success'){
     const toast=document.createElement('div');
     toast.className='toast';
     toast.style.background=type==='error'?'#e74c3c':'#ffa502';
-    toast.innerHTML=`<i class="fas ${type==='error'?'fa-exclamation-circle':'fa-info-circle'}"></i> ${message}`;
+    toast.innerHTML=`<i class="fas ${type==='error'?'fa-exclamation-circle':'fa-info-circle'}"></i> ${escapeHtml(message)}`;
     document.body.appendChild(toast);
     setTimeout(()=>toast.remove(),4000);
 }
 
+// "Enter Portals" just takes anyone to the portal selection page.
+// Each portal (headmaster/teacher/student) handles its own login.
 function checkPortalAccess(event){
     event.preventDefault();
-    const users=JSON.parse(localStorage.getItem('milestone_users')||'[]');
-    if(users.length===0){showToast('⚠️ Please register or login first','error')}
-    else{window.location.href='portal.html'}
+    window.location.href='portal.html';
 }
 
 function togglePassword(inputId,btn){
@@ -315,50 +321,71 @@ function togglePassword(inputId,btn){
 }
 
 // LOGIN FUNCTION
-function loginUser(){
+async function loginUser(){
     const email=document.getElementById('loginEmail').value.trim();
     const password=document.getElementById('loginPassword').value;
     const successMsg=document.getElementById('loginSuccess');
     const errorMsg=document.getElementById('loginError');
-    
+    const btn=document.getElementById('loginBtn');
+
     successMsg.style.display='none';
     errorMsg.style.display='none';
-    
+
     if(!email||!password){
         errorMsg.innerHTML='❌ Please fill in all fields';
         errorMsg.style.display='block';
         return;
     }
-    
-    const users=JSON.parse(localStorage.getItem('milestone_users')||'[]');
-    const user=users.find(u=>u.email===email);
-    
-    if(!user){
-        errorMsg.innerHTML='❌ No account found with this email. <a onclick="closeModal(\'loginModal\');openModal(\'registerModal\')" style="color:#ffa502;cursor:pointer">Sign Up?</a>';
+
+    if(typeof sb==='undefined'){
+        errorMsg.innerHTML='❌ System not loaded. Please refresh the page.';
         errorMsg.style.display='block';
         return;
     }
-    
-    if(atob(user.password)!==password){
-        errorMsg.innerHTML='❌ Incorrect password';
+
+    btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Logging in...';
+
+    try{
+        const{data:user,error}=await sb.from('users').select('*').eq('email',email).single();
+
+        if(error){
+            errorMsg.innerHTML='❌ Login failed: '+escapeHtml(error.message);
+            errorMsg.style.display='block';
+            return;
+        }
+
+        if(!user){
+            errorMsg.innerHTML='❌ No account found with this email. <a onclick="closeModal(\'loginModal\');openModal(\'registerModal\')" style="color:#ffa502;cursor:pointer">Sign Up?</a>';
+            errorMsg.style.display='block';
+            return;
+        }
+
+        if(user.password!==hashPassword(password)){
+            errorMsg.innerHTML='❌ Incorrect password';
+            errorMsg.style.display='block';
+            return;
+        }
+
+        // Store login session for this device
+        sessionStorage.setItem('milestone_user',JSON.stringify({id:user.id,name:user.name,email:user.email,phone:user.phone}));
+
+        successMsg.innerHTML='✅ Login successful! Redirecting...';
+        successMsg.style.display='block';
+
+        setTimeout(()=>{
+            closeModal('loginModal');
+            window.location.href='portal.html';
+        },1500);
+    }catch(err){
+        errorMsg.innerHTML='❌ Error: '+escapeHtml(err.message);
         errorMsg.style.display='block';
-        return;
+    }finally{
+        btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt"></i> Login';
     }
-    
-    // Store login session
-    sessionStorage.setItem('milestone_user',JSON.stringify({name:user.name,email:user.email,phone:user.phone}));
-    
-    successMsg.innerHTML='✅ Login successful! Redirecting...';
-    successMsg.style.display='block';
-    
-    setTimeout(()=>{
-        closeModal('loginModal');
-        window.location.href='portal.html';
-    },1500);
 }
 
 // REGISTER FUNCTION
-function registerUser(){
+async function registerUser(){
     const name=document.getElementById('regName').value.trim();
     const phone=document.getElementById('regPhone').value.trim();
     const email=document.getElementById('regEmail').value.trim();
@@ -366,63 +393,78 @@ function registerUser(){
     const confirmPassword=document.getElementById('regConfirmPassword').value;
     const successMsg=document.getElementById('registerSuccess');
     const errorMsg=document.getElementById('registerError');
-    
+    const btn=document.getElementById('registerBtn');
+
     successMsg.style.display='none';
     errorMsg.style.display='none';
-    
+
     if(!name||!email||!password){
         errorMsg.innerHTML='❌ Please fill in all required fields';
         errorMsg.style.display='block';
         return;
     }
-    
+
     if(password.length<6){
         errorMsg.innerHTML='❌ Password must be at least 6 characters';
         errorMsg.style.display='block';
         return;
     }
-    
+
     if(password!==confirmPassword){
         errorMsg.innerHTML='❌ Passwords do not match';
         errorMsg.style.display='block';
         return;
     }
-    
-    const users=JSON.parse(localStorage.getItem('milestone_users')||'[]');
-    
-    if(users.find(u=>u.email===email)){
-        errorMsg.innerHTML='❌ An account with this email already exists. <a onclick="closeModal(\'registerModal\');openModal(\'loginModal\')" style="color:#ffa502;cursor:pointer">Login?</a>';
+
+    if(typeof sb==='undefined'){
+        errorMsg.innerHTML='❌ System not loaded. Please refresh the page.';
         errorMsg.style.display='block';
         return;
     }
-    
-    users.push({
-        name:name,
-        phone:phone,
-        email:email,
-        password:btoa(password),
-        registeredAt:new Date().toISOString()
-    });
-    
-    localStorage.setItem('milestone_users',JSON.stringify(users));
-    
-    // Store login session
-    sessionStorage.setItem('milestone_user',JSON.stringify({name:name,email:email,phone:phone}));
-    
-    successMsg.innerHTML='✅ Account created successfully! Redirecting...';
-    successMsg.style.display='block';
-    
-    // Clear form
-    document.getElementById('regName').value='';
-    document.getElementById('regPhone').value='';
-    document.getElementById('regEmail').value='';
-    document.getElementById('regPassword').value='';
-    document.getElementById('regConfirmPassword').value='';
-    
-    setTimeout(()=>{
-        closeModal('registerModal');
-        window.location.href='portal.html';
-    },2000);
+
+    btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Creating account...';
+
+    try{
+        const{data:newUser,error}=await sb.from('users').insert([{
+            name:name,
+            phone:phone,
+            email:email,
+            password:hashPassword(password)
+        }]).select().single();
+
+        if(error){
+            if(error.code==='23505'){
+                errorMsg.innerHTML='❌ An account with this email already exists. <a onclick="closeModal(\'registerModal\');openModal(\'loginModal\')" style="color:#ffa502;cursor:pointer">Login?</a>';
+            }else{
+                errorMsg.innerHTML='❌ Registration failed: '+escapeHtml(error.message);
+            }
+            errorMsg.style.display='block';
+            return;
+        }
+
+        // Store login session for this device
+        sessionStorage.setItem('milestone_user',JSON.stringify({id:newUser.id,name:newUser.name,email:newUser.email,phone:newUser.phone}));
+
+        successMsg.innerHTML='✅ Account created successfully! Redirecting...';
+        successMsg.style.display='block';
+
+        // Clear form
+        document.getElementById('regName').value='';
+        document.getElementById('regPhone').value='';
+        document.getElementById('regEmail').value='';
+        document.getElementById('regPassword').value='';
+        document.getElementById('regConfirmPassword').value='';
+
+        setTimeout(()=>{
+            closeModal('registerModal');
+            window.location.href='portal.html';
+        },2000);
+    }catch(err){
+        errorMsg.innerHTML='❌ Error: '+escapeHtml(err.message);
+        errorMsg.style.display='block';
+    }finally{
+        btn.disabled=false;btn.innerHTML='<i class="fas fa-user-plus"></i> Sign Up';
+    }
 }
 
 function sendFeedback(){
