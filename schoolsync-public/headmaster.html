@@ -172,7 +172,23 @@ async function activateSchool(){
     }catch(error){err.innerHTML='❌ Error: '+escapeHtml(error.message);err.style.display='block'}
 }
 
-async function login(){const email=document.getElementById('loginEmail').value.trim(),pw=document.getElementById('loginPassword').value,err=document.getElementById('loginError');err.style.display='none';if(!email||!pw){err.innerHTML='❌ Fill all fields';err.style.display='block';return}const{data:headmaster,error}=await sb.from('headmasters').select('*,schools(*)').eq('email',email).single();if(error||!headmaster||headmaster.password!==hashPassword(pw)){err.innerHTML='❌ Invalid credentials';err.style.display='block';return}if(!headmaster.schools||!headmaster.schools.is_active){err.innerHTML='❌ School not activated';err.style.display='block';return}currentHeadmaster=headmaster;currentSchool=headmaster.schools;sessionStorage.setItem('headmaster_session',JSON.stringify({id:headmaster.id,schoolId:headmaster.school_id,name:headmaster.name,email:headmaster.email}));showDashboard()}
+async function login(){
+    const email=document.getElementById('loginEmail').value.trim(),pw=document.getElementById('loginPassword').value,err=document.getElementById('loginError');
+    err.style.display='none';
+    if(!email||!pw){err.innerHTML='❌ Fill all fields';err.style.display='block';return}
+    const{data:headmaster,error}=await sb.from('headmasters').select('*,schools(*)').eq('email',email).single();
+    if(error){
+        // Surface the real Supabase/Postgres error (often an RLS permission issue) instead of hiding it
+        err.innerHTML='❌ Login query failed: '+escapeHtml(error.message)+(error.code?' (code '+escapeHtml(error.code)+')':'');
+        err.style.display='block';return
+    }
+    if(!headmaster){err.innerHTML='❌ No account found for that email';err.style.display='block';return}
+    if(headmaster.password!==hashPassword(pw)){err.innerHTML='❌ Incorrect password';err.style.display='block';return}
+    if(!headmaster.schools||!headmaster.schools.is_active){err.innerHTML='❌ School not activated';err.style.display='block';return}
+    currentHeadmaster=headmaster;currentSchool=headmaster.schools;
+    sessionStorage.setItem('headmaster_session',JSON.stringify({id:headmaster.id,schoolId:headmaster.school_id,name:headmaster.name,email:headmaster.email}));
+    showDashboard()
+}
 async function showDashboard(){document.getElementById('activationSection').style.display='none';document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';document.getElementById('schoolName').innerText=currentSchool.name;document.getElementById('profileSchoolName').value=currentSchool.name;document.getElementById('profileHeadmasterName').value=currentHeadmaster.name;document.getElementById('profileEmail').value=currentHeadmaster.email;document.getElementById('profilePhone').value=currentHeadmaster.phone||'';if(currentSchool.license_expiry){const days=Math.ceil((new Date(currentSchool.license_expiry)-new Date())/(1000*60*60*24));document.getElementById('licenseBanner').innerHTML='✅ Active | Code: '+escapeHtml(currentSchool.activation_code)+' | Expires: '+new Date(currentSchool.license_expiry).toLocaleDateString()+' | <strong>'+days+' days</strong>'}await loadStats();await loadTeachers()}
 async function loadStats(){const{count:tc}=await sb.from('teachers').select('*',{count:'exact',head:true}).eq('school_id',currentSchool.id);document.getElementById('teacherCount').innerText=tc||0;const{count:sc}=await sb.from('students').select('*',{count:'exact',head:true}).eq('school_id',currentSchool.id);document.getElementById('studentCount').innerText=sc||0;const{count:pc}=await sb.from('programmes').select('*',{count:'exact',head:true}).eq('school_id',currentSchool.id);document.getElementById('programmeCount').innerText=pc||0;const{count:sjc}=await sb.from('subjects').select('*',{count:'exact',head:true}).eq('school_id',currentSchool.id);document.getElementById('subjectCount').innerText=sjc||0}
 async function addTeacher(){const name=document.getElementById('teacherName').value.trim(),email=document.getElementById('teacherEmail').value.trim(),phone=document.getElementById('teacherPhone').value.trim();if(!name||!email){showToast('⚠️ Fill name and email');return}const{error}=await sb.from('teachers').insert([{school_id:currentSchool.id,name:name,email:email,phone:phone,password:hashPassword('teacher123')}]);if(error){showToast(error.code==='23505'?'❌ Email exists':'❌ Failed');return}showToast('✅ Teacher added! PW: teacher123');document.getElementById('teacherName').value='';document.getElementById('teacherEmail').value='';document.getElementById('teacherPhone').value='';await loadTeachers();await loadStats()}
