@@ -298,14 +298,26 @@ function downloadClassReportPDF(){
     showToast('✅ PDF saved!');
 }
 
+// EXCEL DOWNLOAD - School name at top, no remarks
 function downloadClassReportExcel(){
     const t=parseInt(document.getElementById('classReportTerm').value);
     const r=buildClassReport(t);
     if(!r||!r.students.length){showToast('No students');return}
+    
+    // School header rows
+    const data=[];
+    data.push([currentSchool.name]);
+    data.push(['Term '+t+' Class Report']);
+    data.push(['Generated: '+new Date().toLocaleDateString()]);
+    data.push([]); // Empty row
+    
+    // Column headers
     const headers=['Position','ID','Name','Email'];
     r.subjects.forEach(s=>{headers.push(s.name+' Class',s.name+' Exam',s.name+' Final',s.name+' Grade')});
     headers.push('Total','Average','Overall Grade');
-    const data=[headers];
+    data.push(headers);
+    
+    // Student rows
     r.students.forEach(st=>{
         const row=[st.positionText,st.id,st.name,st.email];
         r.subjects.forEach(s=>{
@@ -315,33 +327,155 @@ function downloadClassReportExcel(){
         row.push(st.total.toFixed(1),st.avg,st.grade.grade);
         data.push(row);
     });
+    
+    // Summary
+    data.push([]);
+    data.push(['Total Students: '+r.students.length]);
+    data.push(['Teacher: '+currentTeacher.name]);
+    
     const ws=XLSX.utils.aoa_to_sheet(data);
+    
+    // Merge school name across all columns
+    ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:headers.length-1}}];
     ws['!cols']=headers.map(()=>({wch:14}));
+    
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Class Report');
     XLSX.writeFile(wb,'class_report_term'+t+'.xlsx');
     showToast('✅ Excel saved!');
 }
 
+// WORD DOWNLOAD - Full Ghanaian report format with remarks, vacation, reopening dates
 function downloadClassReportWord(){
     const t=parseInt(document.getElementById('classReportTerm').value);
     const r=buildClassReport(t);
     if(!r||!r.students.length){showToast('No students');return}
-    let h='<html><head><meta charset="UTF-8"></head><body>';
-    h+='<h1>'+currentSchool.name+' - Term '+t+' Report</h1>';
-    h+='<table border="1" style="border-collapse:collapse;font-size:11px">';
-    h+='<tr style="background:#e0e0e0"><th>Pos</th><th>ID</th><th>Name</th><th>Email</th>';
-    r.subjects.forEach(s=>h+='<th>'+s.name+'</th>');
-    h+='<th>Total</th><th>Avg</th><th>Grade</th></tr>';
+    
+    // Calculate vacation and reopening dates based on term
+    let vacationDate='', reopeningDate='';
+    const currentYear=new Date().getFullYear();
+    if(t===1){vacationDate='April 15, '+currentYear;reopeningDate='May 5, '+currentYear}
+    else if(t===2){vacationDate='August 15, '+currentYear;reopeningDate='September 10, '+currentYear}
+    else{vacationDate='December 15, '+currentYear;reopeningDate='January 10, '+(currentYear+1)}
+    
+    let h='<html><head><meta charset="UTF-8"><style>';
+    h+='body{font-family:Arial,sans-serif;font-size:12px}';
+    h+='h1{text-align:center;font-size:18px;margin-bottom:5px}';
+    h+='h2{text-align:center;font-size:14px;margin-bottom:3px}';
+    h+='h3{text-align:center;font-size:12px;margin-bottom:15px}';
+    h+='table{border-collapse:collapse;width:100%;margin-bottom:15px}';
+    h+='th{background:#2e7d32;color:white;padding:8px 5px;font-size:10px;text-align:center}';
+    h+='td{padding:6px 4px;font-size:10px;text-align:center;border:1px solid #999}';
+    h+='.school-header{background:#e8f5e9;font-size:14px;font-weight:bold}';
+    h+='.section-title{background:#c8e6c9;font-weight:bold;font-size:11px}';
+    h+='.remarks-input{min-width:80px;color:#333}';
+    h+='.footer{font-size:10px;margin-top:20px}';
+    h+='.signature-line{border-top:1px solid #000;width:200px;margin-top:30px;display:inline-block}';
+    h+='.position-1{background:#fff9c4;font-weight:bold}';
+    h+='.position-2{background:#f5f5f5;font-weight:bold}';
+    h+='.position-3{background:#ffe0b2;font-weight:bold}';
+    h+='</style></head><body>';
+    
+    // School Header
+    h+='<h1>'+currentSchool.name.toUpperCase()+'</h1>';
+    h+='<h2>END OF TERM '+t+' REPORT</h2>';
+    h+='<h3>Academic Year: '+currentYear+'</h3>';
+    
+    // Class Summary
+    h+='<table><tr><td class="school-header" colspan="4">CLASS SUMMARY</td></tr>';
+    h+='<tr><td><strong>Total Students:</strong> '+r.students.length+'</td>';
+    h+='<td><strong>Teacher:</strong> '+currentTeacher.name+'</td>';
+    h+='<td><strong>Term:</strong> '+t+'</td>';
+    h+='<td><strong>Date:</strong> '+new Date().toLocaleDateString()+'</td></tr></table>';
+    
+    // Main Report Table
+    h+='<table>';
+    
+    // Header row
+    h+='<tr><th rowspan="2">Pos</th><th rowspan="2">ID</th><th rowspan="2">Name</th>';
+    r.subjects.forEach(s=>h+='<th colspan="4">'+s.name+'</th>');
+    h+='<th rowspan="2">Total</th><th rowspan="2">Avg</th><th rowspan="2">Grade</th><th rowspan="2">Remarks</th></tr>';
+    
+    // Sub-headers for Class, Exam, Final, Grade
+    h+='<tr>';
+    r.subjects.forEach(()=>h+='<th>Class</th><th>Exam</th><th>Final</th><th>Grade</th>');
+    h+='</tr>';
+    
+    // Student rows
     r.students.forEach(st=>{
-        h+='<tr><td><strong>'+st.positionText+'</strong></td><td>'+st.id+'</td><td>'+st.name+'</td><td>'+st.email+'</td>';
+        let posClass='';
+        if(st.position===1)posClass='position-1';
+        else if(st.position===2)posClass='position-2';
+        else if(st.position===3)posClass='position-3';
+        
+        h+='<tr class="'+posClass+'">';
+        h+='<td><strong>'+st.positionText+'</strong></td>';
+        h+='<td>'+st.id+'</td>';
+        h+='<td style="text-align:left">'+st.name+'</td>';
+        
         r.subjects.forEach(s=>{
             const sc=st.subjects[s.name];
-            h+='<td>'+(sc?sc.final.toFixed(1)+'% <small>('+sc.grade.grade+')</small>':'—')+'</td>';
+            if(sc){
+                h+='<td>'+sc.class+'%</td>';
+                h+='<td>'+sc.exam+'%</td>';
+                h+='<td><strong>'+sc.final.toFixed(1)+'%</strong></td>';
+                h+='<td><strong>'+sc.grade.grade+'</strong></td>';
+            }else{
+                h+='<td>—</td><td>—</td><td>—</td><td>—</td>';
+            }
         });
-        h+='<td><strong>'+st.total.toFixed(1)+'</strong></td><td>'+st.avg+'%</td><td><strong>'+st.grade.grade+'</strong></td></tr>';
+        
+        h+='<td><strong>'+st.total.toFixed(1)+'</strong></td>';
+        h+='<td>'+st.avg+'%</td>';
+        h+='<td><strong>'+st.grade.grade+'</strong></td>';
+        
+        // Generate automatic remarks based on grade
+        let remarks='';
+        const avgGrade=parseFloat(st.avg);
+        if(avgGrade>=80)remarks='Excellent performance. Keep it up!';
+        else if(avgGrade>=70)remarks='Very good. Continue working hard.';
+        else if(avgGrade>=60)remarks='Good. Room for improvement.';
+        else if(avgGrade>=50)remarks='Average. Needs more effort.';
+        else if(avgGrade>=40)remarks='Below average. Must improve.';
+        else if(avgGrade>0)remarks='Poor performance. Needs serious attention.';
+        else remarks='No assessment data.';
+        h+='<td class="remarks-input">'+remarks+'</td>';
+        
+        h+='</tr>';
     });
-    h+='</table></body></html>';
+    
+    h+='</table>';
+    
+    // Student Attitude & Overall Remarks
+    h+='<h3 style="text-align:left;margin-top:20px">📝 GENERAL CLASS REMARKS</h3>';
+    h+='<table><tr><th>Category</th><th>Remarks</th></tr>';
+    h+='<tr><td><strong>Class Attendance</strong></td><td>_________________________________________________________________</td></tr>';
+    h+='<tr><td><strong>Class Participation</strong></td><td>_________________________________________________________________</td></tr>';
+    h+='<tr><td><strong>Homework/Assignments</strong></td><td>_________________________________________________________________</td></tr>';
+    h+='<tr><td><strong>General Conduct</strong></td><td>_________________________________________________________________</td></tr>';
+    h+='<tr><td><strong>Overall Class Performance</strong></td><td>_________________________________________________________________</td></tr>';
+    h+='</table>';
+    
+    // Vacation & Reopening Dates
+    h+='<h3 style="text-align:left;margin-top:20px">📅 IMPORTANT DATES</h3>';
+    h+='<table>';
+    h+='<tr><td style="text-align:left;width:50%"><strong>🏖 Date of Vacation:</strong></td><td style="text-align:left">'+vacationDate+'</td></tr>';
+    h+='<tr><td style="text-align:left"><strong>🏫 Date of Reopening:</strong></td><td style="text-align:left">'+reopeningDate+'</td></tr>';
+    h+='</table>';
+    
+    // Signature section
+    h+='<div class="footer">';
+    h+='<table style="border:none;margin-top:40px">';
+    h+='<tr>';
+    h+='<td style="border:none;text-align:left;width:50%"><div class="signature-line"></div><br>Class Teacher: '+currentTeacher.name+'</td>';
+    h+='<td style="border:none;text-align:right;width:50%"><div class="signature-line"></div><br>Headmaster</td>';
+    h+='</tr>';
+    h+='</table>';
+    h+='<p style="text-align:center;margin-top:10px">Generated by Milestone School Management System</p>';
+    h+='</div>';
+    
+    h+='</body></html>';
+    
     const blob=new Blob([h],{type:'application/msword'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
