@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -403,29 +404,39 @@
       err.style.display = 'block';
       return;
     }
-    const { data: school } = await sb.from('schools').select('*').eq('name', sn).eq('is_active', true).single();
-    if (!school) {
-      err.textContent = '❌ School not found';
+    if (typeof sb === 'undefined') {
+      err.textContent = '❌ System not loaded (supabase-config.js missing or failed). Please refresh the page.';
       err.style.display = 'block';
       return;
     }
-    const { data: teacher, error: te } = await sb.from('teachers').select('*').eq('school_id', school.id).eq('email', em).single();
-    if (te || !teacher || teacher.password !== hashPassword(pw)) {
-      err.textContent = '❌ Invalid credentials';
+    try {
+      const { data: school } = await sb.from('schools').select('*').eq('name', sn).eq('is_active', true).single();
+      if (!school) {
+        err.textContent = '❌ School not found or not activated';
+        err.style.display = 'block';
+        return;
+      }
+      const { data: teacher, error: te } = await sb.from('teachers').select('*').eq('school_id', school.id).eq('email', em).single();
+      if (te || !teacher || teacher.password !== hashPassword(pw)) {
+        err.textContent = '❌ Invalid credentials';
+        err.style.display = 'block';
+        return;
+      }
+      currentTeacher = teacher;
+      currentSchool = school;
+      sessionStorage.setItem('teacher_session', JSON.stringify({ id: teacher.id, schoolId: school.id, name: teacher.name, email: teacher.email }));
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('dashboardSection').style.display = 'block';
+      document.getElementById('schoolName').textContent = school.name;
+      document.getElementById('teacherName').textContent = teacher.name;
+      document.getElementById('profileName').value = teacher.name || '';
+      document.getElementById('profileEmail').value = teacher.email || '';
+      document.getElementById('profilePhone').value = teacher.phone || '';
+      await loadAllData();
+    } catch (ex) {
+      err.textContent = '❌ Error: ' + ex.message;
       err.style.display = 'block';
-      return;
     }
-    currentTeacher = teacher;
-    currentSchool = school;
-    sessionStorage.setItem('teacher_session', JSON.stringify({ id: teacher.id, schoolId: school.id, name: teacher.name, email: teacher.email }));
-    document.getElementById('loginSection').style.display = 'none';
-    document.getElementById('dashboardSection').style.display = 'block';
-    document.getElementById('schoolName').textContent = school.name;
-    document.getElementById('teacherName').textContent = teacher.name;
-    document.getElementById('profileName').value = teacher.name || '';
-    document.getElementById('profileEmail').value = teacher.email || '';
-    document.getElementById('profilePhone').value = teacher.phone || '';
-    await loadAllData();
   }
 
   async function loadAllData() {
