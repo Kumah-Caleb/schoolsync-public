@@ -9,6 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <style>
@@ -223,6 +224,73 @@
     }
     @media (max-width: 768px) {
       .flex-row { flex-direction: column; }
+      .tabs { display: none; }
+    }
+    .menu-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.3rem;
+      color: #1a472a;
+      cursor: pointer;
+      padding: 0.4rem 0.6rem;
+    }
+    .dark-mode .menu-btn { color: #2ecc71; }
+    .side-nav-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1500;
+    }
+    .side-nav-overlay.open { display: block; }
+    .side-nav {
+      position: fixed;
+      top: 0; left: -280px;
+      width: 260px; height: 100%;
+      background: var(--card-bg);
+      z-index: 1600;
+      transition: left 0.3s ease;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.2);
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      overflow-y: auto;
+    }
+    .side-nav.open { left: 0; }
+    .side-nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .side-nav-header strong { color: #1a472a; font-size: 1.1rem; }
+    .dark-mode .side-nav-header strong { color: #2ecc71; }
+    .close-side-nav {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text2);
+    }
+    .side-nav-item {
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 0.8rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-family: 'Inter', sans-serif;
+    }
+    .side-nav-item.active, .side-nav-item:hover {
+      background: var(--table-stripe);
+      color: var(--primary);
     }
   </style>
 </head>
@@ -247,6 +315,7 @@
           <small style="color:var(--text2)">👤 <span id="teacherName"></span></small>
         </div>
         <div>
+          <button class="menu-btn" onclick="openSideNav()" title="Menu"><i class="fas fa-ellipsis-v"></i></button>
           <button class="btn-outline btn-sm" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
           <button class="btn-danger btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
@@ -260,12 +329,12 @@
     </div>
     <div class="card">
       <div class="tabs">
-        <button class="tab active" onclick="showTab('programmes',event)">📚 Programmes</button>
-        <button class="tab" onclick="showTab('subjects',event)">📖 Subjects</button>
-        <button class="tab" onclick="showTab('students',event)">👨‍🎓 Students</button>
-        <button class="tab" onclick="showTab('scores',event)">📊 Scores</button>
-        <button class="tab" onclick="showTab('reports',event)">📋 Reports</button>
-        <button class="tab" onclick="showTab('settings',event)">⚙️ Settings</button>
+        <button class="tab active" data-tab="programmes" onclick="showTab('programmes',event)">📚 Programmes</button>
+        <button class="tab" data-tab="subjects" onclick="showTab('subjects',event)">📖 Subjects</button>
+        <button class="tab" data-tab="students" onclick="showTab('students',event)">👨‍🎓 Students</button>
+        <button class="tab" data-tab="scores" onclick="showTab('scores',event)">📊 Scores</button>
+        <button class="tab" data-tab="reports" onclick="showTab('reports',event)">📋 Reports</button>
+        <button class="tab" data-tab="settings" onclick="showTab('settings',event)">⚙️ Settings</button>
       </div>
 
       <div id="programmesTab">
@@ -346,6 +415,16 @@
       </div>
     </div>
   </div>
+</div>
+<div id="sideNavOverlay" class="side-nav-overlay" onclick="closeSideNav()"></div>
+<div id="sideNav" class="side-nav">
+  <div class="side-nav-header"><strong>📋 Menu</strong><button class="close-side-nav" onclick="closeSideNav()">&times;</button></div>
+  <button class="side-nav-item active" data-tab="programmes" onclick="showTab('programmes');closeSideNav()">📚 Programmes</button>
+  <button class="side-nav-item" data-tab="subjects" onclick="showTab('subjects');closeSideNav()">📖 Subjects</button>
+  <button class="side-nav-item" data-tab="students" onclick="showTab('students');closeSideNav()">👨‍🎓 Students</button>
+  <button class="side-nav-item" data-tab="scores" onclick="showTab('scores');closeSideNav()">📊 Scores</button>
+  <button class="side-nav-item" data-tab="reports" onclick="showTab('reports');closeSideNav()">📋 Reports</button>
+  <button class="side-nav-item" data-tab="settings" onclick="showTab('settings');closeSideNav()">⚙️ Settings</button>
 </div>
 <div id="toast" class="toast" style="display:none"></div>
 
@@ -654,32 +733,104 @@
     modal.onclick = e => { if (e.target === modal) modal.remove(); };
   }
 
-  async function sendEmailWithFormat(stid, term, format) {
+  function buildStudentReportData(stid, term) {
     const st = schoolData.students.find(s => s.id === parseInt(stid));
-    if (!st || !st.email) return showToast('❌ No email');
+    if (!st) return null;
     const ss = schoolData.scores.filter(s => s.student_id === parseInt(stid) && s.term === term);
     let total = 0, count = 0;
-    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial;background:#f5f5f5;padding:20px}.container{max-width:600px;margin:0 auto;background:white;border-radius:10px;padding:30px}h2{color:#1a472a}table{width:100%;border-collapse:collapse}th{background:#2e7d32;color:white;padding:8px}td{padding:8px;border:1px solid #ddd}.summary{background:#e8f5e9;padding:15px;border-radius:8px;text-align:center}</style></head><body><div class="container"><h2>📋 STUDENT REPORT</h2><p><strong>${currentSchool.name}</strong></p><p>Student: ${st.name} (${st.student_id}) | Term: ${term}</p><table><thead><tr><th>Subject</th><th>Class</th><th>Exam</th><th>Final</th><th>Grade</th></tr></thead><tbody>`;
+    const rows = [];
     ss.forEach(sc => {
       const su = schoolData.subjects.find(s => s.id === sc.subject_id);
       const g = getGrade(sc.final_score);
       total += sc.final_score;
       count++;
-      html += `<tr><td>${su?.name || '—'}</td><td>${sc.class_score}%</td><td>${sc.exam_score}%</td><td>${sc.final_score.toFixed(1)}%</td><td>${g.grade}</td></tr>`;
+      rows.push({ subject: su ? su.name : '—', classScore: sc.class_score, examScore: sc.exam_score, finalScore: sc.final_score, grade: g.grade });
     });
-    const avg = count > 0 ? (total / count).toFixed(1) : 0;
-    html += `</tbody></table><div class="summary"><h3>Overall: ${avg}%</h3></div><p>Teacher: ${currentTeacher.name}</p></div></body></html>`;
+    const avg = count > 0 ? (total / count).toFixed(1) : '0.0';
+    const overall = getGrade(parseFloat(avg));
+    return { student: st, term, rows, avg, overall };
+  }
+
+  function studentReportPDFBlob(data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text(currentSchool.name, 14, 15);
+    doc.setFontSize(11);
+    doc.text(`Student: ${data.student.name} (${data.student.student_id})`, 14, 23);
+    doc.text(`Term ${data.term}`, 14, 30);
+    doc.autoTable({
+      startY: 36,
+      head: [['Subject', 'Class', 'Exam', 'Final', 'Grade']],
+      body: data.rows.length ? data.rows.map(r => [r.subject, r.classScore + '%', r.examScore + '%', r.finalScore.toFixed(1) + '%', r.grade]) : [['No scores recorded', '-', '-', '-', '-']]
+    });
+    const finalY = (doc.lastAutoTable ? doc.lastAutoTable.finalY : 40) + 10;
+    doc.text(`Overall: ${data.avg}%  (Grade: ${data.overall.grade})`, 14, finalY);
+    return doc.output('blob');
+  }
+
+  function studentReportExcelBlob(data) {
+    const wsData = [
+      [currentSchool.name],
+      [`Student: ${data.student.name} (${data.student.student_id})`, '', 'Term', data.term],
+      [],
+      ['Subject', 'Class', 'Exam', 'Final', 'Grade']
+    ];
+    if (data.rows.length === 0) wsData.push(['No scores recorded', '-', '-', '-', '-']);
+    else data.rows.forEach(r => wsData.push([r.subject, r.classScore, r.examScore, Number(r.finalScore.toFixed(1)), r.grade]));
+    wsData.push([]);
+    wsData.push(['Overall', '', '', Number(data.avg), data.overall.grade]);
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Report');
+    const arr = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    return new Blob([arr], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  }
+
+  function studentReportWordBlob(data) {
+    let html = '<html><head><meta charset="utf-8"></head><body>';
+    html += `<h2>${currentSchool.name}</h2><p><strong>${data.student.name}</strong> (${data.student.student_id}) — Term ${data.term}</p>`;
+    html += '<table border="1" cellspacing="0" cellpadding="6" style="border-collapse:collapse;width:100%"><tr><th>Subject</th><th>Class</th><th>Exam</th><th>Final</th><th>Grade</th></tr>';
+    if (data.rows.length === 0) html += '<tr><td colspan="5" style="text-align:center">No scores recorded</td></tr>';
+    else data.rows.forEach(r => html += `<tr><td>${r.subject}</td><td>${r.classScore}%</td><td>${r.examScore}%</td><td>${r.finalScore.toFixed(1)}%</td><td>${r.grade}</td></tr>`);
+    html += '</table>';
+    html += `<p style="margin-top:16px"><strong>Overall: ${data.avg}% (Grade: ${data.overall.grade})</strong></p></body></html>`;
+    return new Blob(['\ufeff', html], { type: 'application/msword' });
+  }
+
+  async function sendEmailWithFormat(stid, term, format) {
+    const data = buildStudentReportData(stid, term);
+    if (!data) return;
+    if (!data.student.email) return showToast('❌ No email on file for this student');
+
+    let blob, ext, contentType, formatLabel;
+    if (format === 'pdf') { blob = studentReportPDFBlob(data); ext = 'pdf'; contentType = 'application/pdf'; formatLabel = 'PDF'; }
+    else if (format === 'excel') { blob = studentReportExcelBlob(data); ext = 'xlsx'; contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'; formatLabel = 'Excel'; }
+    else { blob = studentReportWordBlob(data); ext = 'doc'; contentType = 'application/msword'; formatLabel = 'Word'; }
+
+    const fileName = `${data.student.student_id}_term${term}.${ext}`;
+    const filePath = `${currentSchool.id}/${fileName}`;
+
+    showToast('📤 Uploading report...');
+    const { error: uploadError } = await sb.storage.from('reports').upload(filePath, blob, { contentType, upsert: true });
+    if (uploadError) { showToast('❌ Upload failed: ' + uploadError.message); return; }
+
+    const { data: urlData } = sb.storage.from('reports').getPublicUrl(filePath);
+    const downloadUrl = urlData.publicUrl;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial;background:#f5f5f5;padding:20px}.container{max-width:600px;margin:0 auto;background:white;border-radius:10px;padding:30px}h2{color:#1a472a}.btn-download{display:inline-block;background:#2e7d32;color:white;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:bold;margin-top:15px}.link-fallback{margin-top:20px;color:#999;font-size:12px;word-break:break-all}</style></head><body><div class="container"><h2>📋 Your Term ${term} Report</h2><p><strong>${currentSchool.name}</strong></p><p>Dear ${data.student.name},</p><p>Your Term ${term} report is ready. Click below to download it as a ${formatLabel} file:</p><a class="btn-download" href="${downloadUrl}">⬇️ Download Report (${formatLabel})</a><p class="link-fallback">If the button doesn't work, copy this link into your browser:<br>${downloadUrl}</p><p>Teacher: ${currentTeacher.name}</p></div></body></html>`;
+
     try {
       showToast('📧 Sending...');
       await emailjs.send('service_u0nogau', 'template_z1c20a3', {
-        to_email: st.email,
-        to_name: st.name,
+        to_email: data.student.email,
+        to_name: data.student.name,
         from_name: currentTeacher.name,
-        subject: `Term ${term} Report - ${st.name} | ${currentSchool.name}`,
+        subject: `Term ${term} Report - ${data.student.name} | ${currentSchool.name}`,
         message: html,
         school_name: currentSchool.name
       });
-      showToast('✅ Report sent!');
+      showToast('✅ Report link sent!');
     } catch (e) {
       showToast('❌ Failed: ' + e.message);
     }
@@ -887,7 +1038,21 @@
     ['programmes', 'subjects', 'students', 'scores', 'reports', 'settings'].forEach(t => document.getElementById(t + 'Tab').style.display = 'none');
     document.getElementById(tab + 'Tab').style.display = 'block';
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    if (evt && evt.target) evt.target.classList.add('active');
+    document.querySelectorAll('.side-nav-item').forEach(t => t.classList.remove('active'));
+    const tabBtn = document.querySelector(`.tab[data-tab="${tab}"]`);
+    if (tabBtn) tabBtn.classList.add('active');
+    const navBtn = document.querySelector(`.side-nav-item[data-tab="${tab}"]`);
+    if (navBtn) navBtn.classList.add('active');
+  }
+
+  function openSideNav() {
+    document.getElementById('sideNav').classList.add('open');
+    document.getElementById('sideNavOverlay').classList.add('open');
+  }
+
+  function closeSideNav() {
+    document.getElementById('sideNav').classList.remove('open');
+    document.getElementById('sideNavOverlay').classList.remove('open');
   }
 
   function logout() {
