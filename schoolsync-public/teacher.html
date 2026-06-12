@@ -1,501 +1,918 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teacher Portal | Milestone SMS</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <script src="supabase-config.js"></script>
-    <style>
-        :root{--bg:#2d6b3f;--bg2:#d4a530;--card-bg:white;--text:#333;--text2:#666;--border:#ddd;--table-stripe:#f8f9fa}
-        .dark-mode{--bg:#1a1a2e;--bg2:#0f0f1a;--card-bg:#2d2d44;--text:#e0e0e0;--text2:#aaa;--border:#444;--table-stripe:#3a3a55}
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(225deg,#8db355,#e0c87a);min-height:100vh;min-height:100dvh;color:var(--text)}
-        .container{max-width:1200px;margin:0 auto;padding:clamp(1rem,3vw,2rem)}
-        .card{background:var(--card-bg);border-radius:1.5rem;padding:clamp(1.2rem,2.5vw,2rem);margin-bottom:clamp(1rem,2vw,2rem);box-shadow:0 20px 40px rgba(0,0,0,0.1)}
-        .header{text-align:center;margin-bottom:clamp(1rem,2vw,2rem)}
-        .header h1{color:#1a472a;font-size:clamp(1.3rem,3vw,2rem);font-weight:800;letter-spacing:-0.5px}
-        .form-group{margin-bottom:clamp(0.8rem,1.2vw,1.2rem)}
-        .form-group label{display:block;font-weight:600;margin-bottom:.4rem;color:var(--text);font-size:clamp(0.8rem,1.2vw,0.9rem)}
-        .form-group input,.form-group select{width:100%;padding:clamp(0.6rem,1vw,0.8rem);border:1px solid var(--border);border-radius:.5rem;font-size:clamp(0.85rem,1.2vw,1rem);background:var(--card-bg);color:var(--text);font-family:'Inter',sans-serif}
-        .form-group input:focus,.form-group select:focus{outline:none;border-color:#c8960a}
-        .btn{background:linear-gradient(225deg,#8db355,#e0c87a);color:white;border:none;padding:clamp(0.6rem,1.2vw,0.8rem) clamp(1rem,2vw,1.5rem);border-radius:.5rem;cursor:pointer;font-weight:600;width:100%;font-size:clamp(0.85rem,1.3vw,1rem);font-family:'Inter',sans-serif}
-        .btn:hover{transform:translateY(-2px)}
-        .btn-outline{background:transparent;border:2px solid #c8960a;color:#c8960a;width:auto}
-        .btn-danger{background:linear-gradient(135deg,#e74c3c,#c0392b);width:auto;color:white}
-        .btn-sm{padding:.3rem .6rem;font-size:clamp(0.7rem,1vw,0.8rem);width:auto}
-        .btn-success{background:linear-gradient(135deg,#2ecc71,#27ae60);width:auto;color:white}
-        .btn-warning{background:#f39c12;color:white;width:auto}
-        .btn-info{background:#3498db;color:white;width:auto}
-        .btn-email{background:#8e44ad;color:white;width:auto}
-        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:clamp(0.5rem,1vw,1rem);margin-bottom:clamp(1rem,2vw,2rem)}
-        .stat-card{background:linear-gradient(225deg,#8db355,#e0c87a);color:white;padding:clamp(1rem,1.5vw,1.5rem);border-radius:1rem;text-align:center}
-        .stat-number{font-size:clamp(1.3rem,2.5vw,2rem);font-weight:800}
-        .stat-label{margin-top:.3rem;font-size:clamp(0.7rem,1vw,0.9rem);opacity:.9;font-weight:500}
-        .tabs{display:flex;gap:.3rem;margin-bottom:1.5rem;border-bottom:2px solid var(--border);flex-wrap:wrap;overflow-x:auto;-webkit-overflow-scrolling:touch}
-        .tab{padding:clamp(0.6rem,1vw,0.8rem) clamp(0.8rem,1.2vw,1.2rem);background:none;border:none;cursor:pointer;font-weight:600;color:var(--text2);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;font-size:clamp(0.7rem,1vw,0.9rem);font-family:'Inter',sans-serif}
-        .tab.active{color:#c8960a;border-bottom-color:#c8960a}
-        .table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -1rem;padding:0 1rem}
-        table{width:100%;border-collapse:collapse;font-size:clamp(0.7rem,1vw,0.9rem);min-width:700px}
-        th,td{padding:clamp(0.4rem,0.7vw,0.7rem);text-align:center;border:1px solid var(--border)}
-        th{background:var(--table-stripe);font-weight:600;white-space:nowrap}
-        tr:hover{background:var(--table-stripe)}
-        .search-container{display:flex;gap:.5rem;margin-bottom:1rem;align-items:center}
-        .search-input{flex:1;min-width:120px;padding:clamp(0.5rem,0.8vw,0.7rem) clamp(0.7rem,1vw,1rem);border:1px solid var(--border);border-radius:.5rem;background:var(--card-bg);color:var(--text);font-family:'Inter',sans-serif;font-size:clamp(0.8rem,1vw,0.9rem)}
-        .toast{position:fixed;bottom:20px;right:20px;background:#333;color:white;padding:clamp(0.6rem,1vw,0.8rem) clamp(1rem,1.5vw,1.5rem);border-radius:2rem;z-index:1000;animation:slideIn .3s ease;font-weight:500;font-size:clamp(0.75rem,1vw,0.85rem);max-width:90vw}
-        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
-        .flex-row{display:flex;gap:clamp(0.5rem,1vw,1rem);flex-wrap:wrap}
-        .flex-row input,.flex-row select{flex:1;min-width:120px;padding:.7rem;border:1px solid var(--border);border-radius:.5rem;font-family:'Inter',sans-serif;background:var(--card-bg);color:var(--text)}
-        .grade-a1{background:#2e7d32;color:white;padding:2px 8px;border-radius:20px;display:inline-block;font-weight:700;font-size:clamp(0.6rem,0.85vw,0.75rem)}
-        .grade-b2{background:#43a047;color:white;padding:2px 8px;border-radius:20px;display:inline-block;font-weight:700;font-size:clamp(0.6rem,0.85vw,0.75rem)}
-        .grade-b3{background:#66bb6a;color:white;padding:2px 8px;border-radius:20px;display:inline-block;font-weight:700;font-size:clamp(0.6rem,0.85vw,0.75rem)}
-        .grade-c4{background:#ef6c00;color:white;padding:2px 8px;border-radius:20px;display:inline-block;font-weight:700;font-size:clamp(0.6rem,0.85vw,0.75rem)}
-        .grade-c5{background:#ff9800;color:white;padding:2px 8px;border-radius:20px;display:inline-block;font-weight:700;font-size:clamp(0.6rem,0.85vw,0.75rem)}
-        .grade-c6{background:#ffb74d;color:white;padding:2px 8px;border-radius:20px;display:inline-block;font-weight:700;font-size:clamp(0.6rem,0.85vw,0.75rem)}
-        .grade-d7,.grade-e8,.grade-f9{background:#c62828;color:white;padding:2px 8px;border-radius:20px;display:inline-block;font-weight:700;font-size:clamp(0.6rem,0.85vw,0.75rem)}
-        .status-badge{display:inline-block;padding:.2rem .6rem;border-radius:1rem;font-size:clamp(0.6rem,0.85vw,0.75rem);font-weight:600}
-        .status-active{background:#2ecc7120;color:#27ae60}.status-pending{background:#fff3cd;color:#856404}
-        .level-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:clamp(0.65rem,0.9vw,0.8rem);font-weight:700}
-        .level-shs{background:#e8f0fe;color:#1a472a}.level-jhs{background:#fff3e0;color:#e67e22}
-        .error-box{background:#ffebee;padding:clamp(0.7rem,1vw,1rem);border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #e74c3c;color:#c62828}
-        .success-box{background:#e8f5e9;padding:clamp(0.7rem,1vw,1rem);border-radius:.5rem;margin-bottom:1rem;border-left:4px solid #2ecc71;color:#2e7d32}
-        .position-highlight{font-weight:800}
-        @media(max-width:768px){.container{padding:0.8rem}.card{padding:1.2rem;border-radius:1rem}.flex-row{flex-direction:column}.flex-row input,.flex-row select{min-width:100%}}
-        @media(max-width:400px){.tabs{gap:0.2rem}.tab{padding:0.5rem 0.6rem;font-size:0.7rem}}
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>Teacher Portal | Milestone SMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <style>
+    :root {
+      --bg: #2d6b3f;
+      --bg2: #d4a530;
+      --card-bg: white;
+      --text: #333;
+      --text2: #666;
+      --border: #ddd;
+      --table-stripe: #f8f9fa;
+      --primary: #c8960a;
+      --danger: #e74c3c;
+      --success: #2ecc71;
+    }
+    .dark-mode {
+      --bg: #1a1a2e;
+      --bg2: #0f0f1a;
+      --card-bg: #2d2d44;
+      --text: #e0e0e0;
+      --text2: #aaa;
+      --border: #444;
+      --table-stripe: #3a3a55;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(225deg, #8db355, #e0c87a);
+      min-height: 100vh;
+      color: var(--text);
+      padding: 1rem;
+    }
+    .container {
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+    .card {
+      background: var(--card-bg);
+      border-radius: 1.5rem;
+      padding: clamp(1.2rem, 2.5vw, 2rem);
+      margin-bottom: clamp(1rem, 2vw, 2rem);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+    .header h1 {
+      color: #1a472a;
+      font-size: clamp(1.3rem, 3vw, 2rem);
+      font-weight: 800;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      background: var(--card-bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+    }
+    .btn {
+      background: linear-gradient(225deg, #8db355, #e0c87a);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: 0.2s;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+    .btn-danger {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+    }
+    .btn-warning {
+      background: #f39c12;
+    }
+    .btn-info {
+      background: #3498db;
+    }
+    .btn-email {
+      background: #8e44ad;
+    }
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: linear-gradient(225deg, #8db355, #e0c87a);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 1rem;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 2rem;
+      font-weight: 800;
+    }
+    .tabs {
+      display: flex;
+      gap: 0.3rem;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .tab {
+      padding: 0.8rem 1.2rem;
+      background: none;
+      border: none;
+      font-weight: 600;
+      color: var(--text2);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      cursor: pointer;
+    }
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 0 -1rem;
+      padding: 0 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      min-width: 700px;
+    }
+    th, td {
+      padding: 0.6rem;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    th {
+      background: var(--table-stripe);
+      font-weight: 600;
+    }
+    .grade-a1 { background: #2e7d32; color: white; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+    .grade-b2 { background: #43a047; color: white; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+    .grade-b3 { background: #66bb6a; color: white; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+    .grade-c4 { background: #ef6c00; color: white; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+    .grade-c5 { background: #ff9800; color: white; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+    .grade-c6 { background: #ffb74d; color: white; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+    .grade-d7, .grade-e8, .grade-f9 { background: #c62828; color: white; padding: 2px 8px; border-radius: 20px; font-weight: 700; }
+    .status-badge {
+      padding: 0.2rem 0.6rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-active { background: #2ecc7120; color: #27ae60; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .level-badge {
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+    }
+    .level-shs { background: #e8f0fe; color: #1a472a; }
+    .level-jhs { background: #fff3e0; color: #e67e22; }
+    .error-box {
+      background: #ffebee;
+      padding: 0.8rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #e74c3c;
+      color: #c62828;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #333;
+      color: white;
+      padding: 0.8rem 1.5rem;
+      border-radius: 2rem;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+      font-weight: 500;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @media (max-width: 768px) {
+      .flex-row { flex-direction: column; }
+    }
+  </style>
 </head>
 <body>
 <div class="container">
-    <div id="loginSection">
-        <div class="card" style="max-width:500px;margin:50px auto">
-            <div class="header"><h1>👨‍🏫 Teacher Login</h1></div>
-            <div id="loginError" class="error-box" style="display:none"></div>
-            <div class="form-group"><label>🏫 School</label><input type="text" id="loginSchool" placeholder="School name"></div>
-            <div class="form-group"><label>📧 Email</label><input type="email" id="loginEmail" placeholder="Teacher email"></div>
-            <div class="form-group"><label>🔒 Password</label><input type="password" id="loginPassword" placeholder="Password"></div>
-            <button class="btn" onclick="login()">🔑 Login →</button>
-        </div>
+  <div id="loginSection">
+    <div class="card" style="max-width:500px;margin:50px auto">
+      <div class="header"><h1>👨‍🏫 Teacher Login</h1></div>
+      <div id="loginError" class="error-box" style="display:none"></div>
+      <div class="form-group"><label>🏫 School</label><input type="text" id="loginSchool" placeholder="School name"></div>
+      <div class="form-group"><label>📧 Email</label><input type="email" id="loginEmail" placeholder="Teacher email"></div>
+      <div class="form-group"><label>🔒 Password</label><input type="password" id="loginPassword" placeholder="Password"></div>
+      <button class="btn" onclick="login()">🔑 Login →</button>
     </div>
+  </div>
 
-    <div id="dashboardSection" style="display:none">
-        <div class="card">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.8rem">
-                <div><h2 style="color:#1a472a;font-weight:700;font-size:clamp(1.1rem,2vw,1.5rem)"><span id="schoolName"></span></h2><small style="color:var(--text2)">👤 <span id="teacherName"></span></small></div>
-                <div><button class="btn-outline btn-sm" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button><button class="btn-danger btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
-            </div>
+  <div id="dashboardSection" style="display:none">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+        <div>
+          <h2 style="color:#1a472a;" id="schoolName"></h2>
+          <small style="color:var(--text2)">👤 <span id="teacherName"></span></small>
         </div>
-        <div class="stats-grid">
-            <div class="stat-card"><div class="stat-number" id="programmeCount">0</div><div class="stat-label">Programmes</div></div>
-            <div class="stat-card"><div class="stat-number" id="subjectCount">0</div><div class="stat-label">Subjects</div></div>
-            <div class="stat-card"><div class="stat-number" id="studentCount">0</div><div class="stat-label">Students</div></div>
-            <div class="stat-card"><div class="stat-number" id="assessmentCount">0</div><div class="stat-label">Assessments</div></div>
+        <div>
+          <button class="btn-outline btn-sm" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
+          <button class="btn-danger btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
-        <div class="card">
-            <div class="tabs">
-                <button class="tab active" onclick="showTab('programmes',event)">📚 Programmes</button>
-                <button class="tab" onclick="showTab('subjects',event)">📖 Subjects</button>
-                <button class="tab" onclick="showTab('students',event)">👨‍🎓 Students</button>
-                <button class="tab" onclick="showTab('scores',event)">📊 Scores</button>
-                <button class="tab" onclick="showTab('reports',event)">📋 Reports</button>
-                <button class="tab" onclick="showTab('settings',event)">⚙️ Settings</button>
-            </div>
-
-            <!-- PROGRAMMES TAB -->
-            <div id="programmesTab">
-                <h3 style="font-weight:700">Create Programme</h3>
-                <div class="flex-row" style="margin-bottom:2rem"><input type="text" id="progName" placeholder="Programme name"><select id="progLevel"><option value="JHS">JHS</option><option value="SHS">SHS</option></select><button class="btn" onclick="addProgramme()" style="width:auto">+ Add</button></div>
-                <h3 style="font-weight:700">All Programmes</h3><div id="programmesList"></div>
-            </div>
-
-            <!-- SUBJECTS TAB -->
-            <div id="subjectsTab" style="display:none">
-                <h3 style="font-weight:700">Add Subject</h3>
-                <div class="flex-row" style="margin-bottom:2rem"><select id="subjectProgramme"><option value="">Select Programme</option></select><input type="text" id="subjectName" placeholder="Subject name"><button class="btn" onclick="addSubject()" style="width:auto">+ Add</button></div>
-                <h3 style="font-weight:700">All Subjects</h3><div id="subjectsList"></div>
-            </div>
-
-            <!-- STUDENTS TAB -->
-            <div id="studentsTab" style="display:none">
-                <h3 style="font-weight:700">Add Student</h3>
-                <div class="flex-row" style="margin-bottom:1rem"><input type="text" id="addStudentName" placeholder="Full Name"><input type="email" id="addStudentEmail" placeholder="Email"><input type="tel" id="addStudentPhone" placeholder="Phone"><button class="btn btn-success" onclick="addStudent()" style="width:auto">+ Add</button></div>
-                <div id="pendingStudents"></div>
-                <div class="search-container"><input type="text" id="studentSearchInput" class="search-input" placeholder="🔍 Search by name or ID..." onkeyup="renderStudents()"></div>
-                <h3 style="font-weight:700;margin-top:1rem">All Students</h3>
-                <div class="table-wrapper"><table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Programme</th><th>Status</th><th>Actions</th></tr></thead><tbody id="studentsTableBody"></tbody></table></div>
-            </div>
-
-            <!-- SCORES TAB -->
-            <div id="scoresTab" style="display:none">
-                <h3 style="font-weight:700">Record Assessment</h3>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:clamp(0.5rem,1vw,1rem);margin-bottom:2rem"><select id="scoreSubject"><option value="">Select Subject</option></select><select id="scoreStudent"><option value="">Select Student</option></select><select id="scoreTerm"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select><input type="number" id="classScore" placeholder="Class Score (%)" min="0" max="100"><input type="number" id="examScore" placeholder="Exam Score (%)" min="0" max="100"><button class="btn btn-success" onclick="recordScore()">💾 Save Score</button></div>
-                <h3 style="font-weight:700">Recent Assessments</h3><div id="recentScores"></div>
-            </div>
-
-            <!-- REPORTS TAB -->
-            <div id="reportsTab" style="display:none">
-                <h3 style="font-weight:700">📋 Generate Report</h3>
-                <div class="search-container"><input type="text" id="reportSearchInput" class="search-input" placeholder="🔍 Search student..." onkeyup="filterReportStudents()"></div>
-                <div class="flex-row" style="margin-bottom:2rem"><select id="reportStudent"><option value="">Select Student</option></select><select id="reportTerm"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select><button class="btn" onclick="generateReport()" style="width:auto">📄 Generate</button></div>
-                <div id="reportResult"></div>
-            </div>
-
-            <!-- SETTINGS TAB -->
-            <div id="settingsTab" style="display:none">
-                <h3 style="font-weight:700">👤 My Profile</h3>
-                <div class="form-group"><label>Name</label><input type="text" id="profileName"></div>
-                <div class="form-group"><label>Email</label><input type="email" id="profileEmail" readonly></div>
-                <div class="form-group"><label>Phone</label><input type="tel" id="profilePhone"></div>
-                <button class="btn" onclick="updateTeacherProfile()" style="width:auto">💾 Update</button>
-                <h3 style="font-weight:700;margin-top:2rem">🔐 Change Password</h3>
-                <div class="form-group"><label>Current</label><input type="password" id="currentPwd"></div>
-                <div class="form-group"><label>New</label><input type="password" id="newPwd"></div>
-                <div class="form-group"><label>Confirm</label><input type="password" id="confirmPwd"></div>
-                <button class="btn btn-info" onclick="changeTeacherPassword()" style="width:auto">🔒 Update</button>
-                <h3 style="font-weight:700;margin-top:2rem">📥 Download Class Report (with Positions)</h3>
-                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem">
-                    <select id="classReportTerm" style="padding:.7rem;border:1px solid var(--border);border-radius:.5rem;min-width:150px"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select>
-                </div>
-                <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
-                    <button class="btn-sm btn-info" onclick="downloadClassReportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
-                    <button class="btn-sm btn-success" onclick="downloadClassReportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
-                    <button class="btn-sm btn-warning" onclick="downloadClassReportWord()"><i class="fas fa-file-word"></i> Word</button>
-                </div>
-                <h3 style="font-weight:700;margin-top:2rem;color:#e74c3c">🗑 Clear Data</h3>
-                <p style="font-size:clamp(0.75rem,1vw,0.85rem);color:var(--text2)">Remove all data for this school.</p>
-                <button class="btn btn-danger" onclick="clearAllData()" style="width:auto">🗑 Clear All Data</button>
-            </div>
-        </div>
+      </div>
     </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-number" id="programmeCount">0</div><div class="stat-label">Programmes</div></div>
+      <div class="stat-card"><div class="stat-number" id="subjectCount">0</div><div class="stat-label">Subjects</div></div>
+      <div class="stat-card"><div class="stat-number" id="studentCount">0</div><div class="stat-label">Students</div></div>
+      <div class="stat-card"><div class="stat-number" id="assessmentCount">0</div><div class="stat-label">Assessments</div></div>
+    </div>
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" onclick="showTab('programmes',event)">📚 Programmes</button>
+        <button class="tab" onclick="showTab('subjects',event)">📖 Subjects</button>
+        <button class="tab" onclick="showTab('students',event)">👨‍🎓 Students</button>
+        <button class="tab" onclick="showTab('scores',event)">📊 Scores</button>
+        <button class="tab" onclick="showTab('reports',event)">📋 Reports</button>
+        <button class="tab" onclick="showTab('settings',event)">⚙️ Settings</button>
+      </div>
+
+      <div id="programmesTab">
+        <h3>Create Programme</h3>
+        <div class="flex-row" style="display:flex; gap:0.5rem; margin-bottom:2rem">
+          <input type="text" id="progName" placeholder="Programme name">
+          <select id="progLevel"><option value="JHS">JHS</option><option value="SHS">SHS</option></select>
+          <button class="btn" onclick="addProgramme()">+ Add</button>
+        </div>
+        <div id="programmesList"></div>
+      </div>
+      <div id="subjectsTab" style="display:none">
+        <h3>Add Subject</h3>
+        <div class="flex-row" style="display:flex; gap:0.5rem; margin-bottom:2rem">
+          <select id="subjectProgramme"><option value="">Select Programme</option></select>
+          <input type="text" id="subjectName" placeholder="Subject name">
+          <button class="btn" onclick="addSubject()">+ Add</button>
+        </div>
+        <div id="subjectsList"></div>
+      </div>
+      <div id="studentsTab" style="display:none">
+        <h3>Add Student</h3>
+        <div class="flex-row" style="display:flex; gap:0.5rem; margin-bottom:1rem">
+          <input type="text" id="addStudentName" placeholder="Full Name">
+          <input type="email" id="addStudentEmail" placeholder="Email">
+          <input type="tel" id="addStudentPhone" placeholder="Phone">
+          <button class="btn btn-success" onclick="addStudent()">+ Add</button>
+        </div>
+        <div id="pendingStudents"></div>
+        <div class="search-container" style="margin:1rem 0"><input type="text" id="studentSearchInput" class="search-input" placeholder="🔍 Search by name or ID..." onkeyup="renderStudents()"></div>
+        <div class="table-wrapper"><table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Programme</th><th>Status</th><th>Actions</th></tr></thead><tbody id="studentsTableBody"></tbody></table></div>
+      </div>
+      <div id="scoresTab" style="display:none">
+        <h3>Record Assessment</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:2rem">
+          <select id="scoreSubject"><option value="">Select Subject</option></select>
+          <select id="scoreStudent"><option value="">Select Student</option></select>
+          <select id="scoreTerm"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select>
+          <input type="number" id="classScore" placeholder="Class Score (%)" min="0" max="100">
+          <input type="number" id="examScore" placeholder="Exam Score (%)" min="0" max="100">
+          <button class="btn btn-success" onclick="recordScore()">💾 Save Score</button>
+        </div>
+        <h3>Recent Assessments</h3><div id="recentScores"></div>
+      </div>
+      <div id="reportsTab" style="display:none">
+        <h3>📋 Generate Report</h3>
+        <div class="search-container"><input type="text" id="reportSearchInput" class="search-input" placeholder="🔍 Search student..." onkeyup="filterReportStudents()"></div>
+        <div class="flex-row" style="display:flex; gap:0.5rem; margin-bottom:2rem">
+          <select id="reportStudent"><option value="">Select Student</option></select>
+          <select id="reportTerm"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select>
+          <button class="btn" onclick="generateReport()">📄 Generate</button>
+        </div>
+        <div id="reportResult"></div>
+      </div>
+      <div id="settingsTab" style="display:none">
+        <h3>👤 My Profile</h3>
+        <div class="form-group"><label>Name</label><input type="text" id="profileName"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="profileEmail" readonly></div>
+        <div class="form-group"><label>Phone</label><input type="tel" id="profilePhone"></div>
+        <button class="btn" onclick="updateTeacherProfile()">💾 Update</button>
+        <h3 style="margin-top:2rem">🔐 Change Password</h3>
+        <div class="form-group"><label>Current</label><input type="password" id="currentPwd"></div>
+        <div class="form-group"><label>New</label><input type="password" id="newPwd"></div>
+        <div class="form-group"><label>Confirm</label><input type="password" id="confirmPwd"></div>
+        <button class="btn btn-info" onclick="changeTeacherPassword()">🔒 Update</button>
+        <h3 style="margin-top:2rem">📥 Download Class Report (with Positions)</h3>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem">
+          <select id="classReportTerm" style="padding:.7rem; border:1px solid var(--border); border-radius:.5rem"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap">
+          <button class="btn-sm btn-info" onclick="downloadClassReportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+          <button class="btn-sm btn-success" onclick="downloadClassReportExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+          <button class="btn-sm btn-warning" onclick="downloadClassReportWord()"><i class="fas fa-file-word"></i> Word</button>
+        </div>
+        <h3 style="margin-top:2rem; color:#e74c3c">🗑 Clear Data</h3>
+        <p style="font-size:0.85rem">Remove all data for this school.</p>
+        <button class="btn btn-danger" onclick="clearAllData()">🗑 Clear All Data</button>
+      </div>
+    </div>
+  </div>
 </div>
-<div id="toast"></div>
+<div id="toast" class="toast" style="display:none"></div>
 
 <script>
-(function(){emailjs.init("CVzkW-GV4NwfsF5GU")})();
-let currentTeacher=null,currentSchool=null,schoolData={programmes:[],subjects:[],students:[],scores:[]};
-function hashPassword(pw){const s='SchoolSync_GH_2024';return btoa(btoa(pw+s).split('').reverse().join('')+s)}
-function showToast(msg){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('toast');setTimeout(()=>t.classList.remove('toast'),3000)}
-function toggleDarkMode(){document.body.classList.toggle('dark-mode');localStorage.setItem('darkMode',document.body.classList.contains('dark-mode'))}
-if(localStorage.getItem('darkMode')==='true')document.body.classList.add('dark-mode');
-function getGrade(s){if(s>=80)return{grade:'A1',class:'grade-a1'};if(s>=70)return{grade:'B2',class:'grade-b2'};if(s>=65)return{grade:'B3',class:'grade-b3'};if(s>=60)return{grade:'C4',class:'grade-c4'};if(s>=55)return{grade:'C5',class:'grade-c5'};if(s>=50)return{grade:'C6',class:'grade-c6'};if(s>=45)return{grade:'D7',class:'grade-d7'};if(s>=40)return{grade:'E8',class:'grade-e8'};return{grade:'F9',class:'grade-f9'}}
+  (function(){ emailjs.init("CVzkW-GV4NwfsF5GU"); })();
 
-// LOGIN
-async function login(){
-    const sn=document.getElementById('loginSchool').value.trim(),em=document.getElementById('loginEmail').value.trim(),pw=document.getElementById('loginPassword').value,err=document.getElementById('loginError');
-    err.style.display='none';if(!sn||!em||!pw){err.innerHTML='❌ Fill all fields';err.style.display='block';return}
-    const{data:school}=await sb.from('schools').select('*').eq('name',sn).eq('is_active',true).single();
-    if(!school){err.innerHTML='❌ School not found';err.style.display='block';return}
-    const{data:teacher,error:te}=await sb.from('teachers').select('*').eq('school_id',school.id).eq('email',em).single();
-    if(te||!teacher||teacher.password!==hashPassword(pw)){err.innerHTML='❌ Invalid credentials';err.style.display='block';return}
-    currentTeacher=teacher;currentSchool=school;
-    sessionStorage.setItem('teacher_session',JSON.stringify({id:teacher.id,schoolId:school.id,name:teacher.name,email:teacher.email}));
-    document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';
-    document.getElementById('schoolName').innerHTML=school.name;document.getElementById('teacherName').innerHTML=teacher.name;
-    document.getElementById('profileName').value=teacher.name;document.getElementById('profileEmail').value=teacher.email;document.getElementById('profilePhone').value=teacher.phone||'';
+  let currentTeacher = null;
+  let currentSchool = null;
+  let schoolData = { programmes: [], subjects: [], students: [], scores: [] };
+
+  function hashPassword(pw) {
+    const s = 'SchoolSync_GH_2024';
+    return btoa(btoa(pw + s).split('').reverse().join('') + s);
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => { t.style.display = 'none'; }, 3000);
+  }
+
+  function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+  }
+  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+
+  function getGrade(s) {
+    if (s >= 80) return { grade: 'A1', class: 'grade-a1' };
+    if (s >= 70) return { grade: 'B2', class: 'grade-b2' };
+    if (s >= 65) return { grade: 'B3', class: 'grade-b3' };
+    if (s >= 60) return { grade: 'C4', class: 'grade-c4' };
+    if (s >= 55) return { grade: 'C5', class: 'grade-c5' };
+    if (s >= 50) return { grade: 'C6', class: 'grade-c6' };
+    if (s >= 45) return { grade: 'D7', class: 'grade-d7' };
+    if (s >= 40) return { grade: 'E8', class: 'grade-e8' };
+    return { grade: 'F9', class: 'grade-f9' };
+  }
+
+  function formatPosition(pos) {
+    if (pos === 1) return '1st';
+    if (pos === 2) return '2nd';
+    if (pos === 3) return '3rd';
+    return pos + 'th';
+  }
+
+  async function login() {
+    const sn = document.getElementById('loginSchool').value.trim();
+    const em = document.getElementById('loginEmail').value.trim();
+    const pw = document.getElementById('loginPassword').value;
+    const err = document.getElementById('loginError');
+    err.style.display = 'none';
+    if (!sn || !em || !pw) {
+      err.textContent = '❌ Fill all fields';
+      err.style.display = 'block';
+      return;
+    }
+    const { data: school } = await sb.from('schools').select('*').eq('name', sn).eq('is_active', true).single();
+    if (!school) {
+      err.textContent = '❌ School not found';
+      err.style.display = 'block';
+      return;
+    }
+    const { data: teacher, error: te } = await sb.from('teachers').select('*').eq('school_id', school.id).eq('email', em).single();
+    if (te || !teacher || teacher.password !== hashPassword(pw)) {
+      err.textContent = '❌ Invalid credentials';
+      err.style.display = 'block';
+      return;
+    }
+    currentTeacher = teacher;
+    currentSchool = school;
+    sessionStorage.setItem('teacher_session', JSON.stringify({ id: teacher.id, schoolId: school.id, name: teacher.name, email: teacher.email }));
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('dashboardSection').style.display = 'block';
+    document.getElementById('schoolName').textContent = school.name;
+    document.getElementById('teacherName').textContent = teacher.name;
+    document.getElementById('profileName').value = teacher.name || '';
+    document.getElementById('profileEmail').value = teacher.email || '';
+    document.getElementById('profilePhone').value = teacher.phone || '';
     await loadAllData();
-}
+  }
 
-async function loadAllData(){
-    const{data:p}=await sb.from('programmes').select('*').eq('school_id',currentSchool.id).order('name');schoolData.programmes=p||[];
-    const{data:s}=await sb.from('subjects').select('*').eq('school_id',currentSchool.id).order('name');schoolData.subjects=s||[];
-    const{data:st}=await sb.from('students').select('*').eq('school_id',currentSchool.id).order('name');schoolData.students=st||[];
-    const{data:sc}=await sb.from('scores').select('*').eq('school_id',currentSchool.id).order('date',{ascending:false});schoolData.scores=sc||[];
-    await updateStats();await renderProgrammes();await renderSubjects();await renderStudents();await renderRecentScores();await populateDropdowns();
-}
-async function updateStats(){document.getElementById('programmeCount').innerText=schoolData.programmes.length;document.getElementById('subjectCount').innerText=schoolData.subjects.length;document.getElementById('studentCount').innerText=schoolData.students.length;document.getElementById('assessmentCount').innerText=schoolData.scores.length}
+  async function loadAllData() {
+    const { data: p } = await sb.from('programmes').select('*').eq('school_id', currentSchool.id).order('name');
+    schoolData.programmes = p || [];
+    const { data: s } = await sb.from('subjects').select('*').eq('school_id', currentSchool.id).order('name');
+    schoolData.subjects = s || [];
+    const { data: st } = await sb.from('students').select('*').eq('school_id', currentSchool.id).order('name');
+    schoolData.students = st || [];
+    const { data: sc } = await sb.from('scores').select('*').eq('school_id', currentSchool.id).order('date', { ascending: false });
+    schoolData.scores = sc || [];
+    updateStats();
+    renderProgrammes();
+    renderSubjects();
+    renderStudents();
+    renderRecentScores();
+    populateDropdowns();
+  }
 
-// PROGRAMMES
-async function addProgramme(){const n=document.getElementById('progName').value.trim(),l=document.getElementById('progLevel').value;if(!n){showToast('Enter name');return}await sb.from('programmes').insert([{school_id:currentSchool.id,name:n,level:l}]);showToast('✅ Added!');document.getElementById('progName').value='';await loadAllData()}
-async function renderProgrammes(){const c=document.getElementById('programmesList');if(!schoolData.programmes.length){c.innerHTML='<p style="color:var(--text2)">No programmes</p>';return}c.innerHTML=schoolData.programmes.map(p=>`<div style="border:1px solid var(--border);padding:.8rem;border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center"><div><strong>${p.name}</strong> <span class="level-badge ${p.level==='JHS'?'level-jhs':'level-shs'}">${p.level}</span></div><button class="btn-danger btn-sm" onclick="deleteProgramme(${p.id})">🗑</button></div>`).join('')}
-async function deleteProgramme(id){if(!confirm('Delete?'))return;await sb.from('programmes').delete().eq('id',id);await sb.from('subjects').delete().eq('programme_id',id);showToast('🗑 Deleted');await loadAllData()}
+  function updateStats() {
+    document.getElementById('programmeCount').textContent = schoolData.programmes.length;
+    document.getElementById('subjectCount').textContent = schoolData.subjects.length;
+    document.getElementById('studentCount').textContent = schoolData.students.length;
+    document.getElementById('assessmentCount').textContent = schoolData.scores.length;
+  }
 
-// SUBJECTS
-async function addSubject(){const pid=document.getElementById('subjectProgramme').value,n=document.getElementById('subjectName').value.trim();if(!pid||!n){showToast('Select programme and enter name');return}await sb.from('subjects').insert([{school_id:currentSchool.id,programme_id:parseInt(pid),name:n}]);showToast('✅ Added!');document.getElementById('subjectName').value='';await loadAllData()}
-async function renderSubjects(){const s=document.getElementById('subjectProgramme'),c=document.getElementById('subjectsList');s.innerHTML='<option value="">Select Programme</option>'+schoolData.programmes.map(p=>`<option value="${p.id}">${p.name} (${p.level})</option>`).join('');if(!schoolData.subjects.length){c.innerHTML='<p style="color:var(--text2)">No subjects</p>';return}c.innerHTML=schoolData.subjects.map(s=>`<div style="border:1px solid var(--border);padding:.6rem;border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center"><span>📖 <strong>${s.name}</strong></span><button class="btn-danger btn-sm" onclick="deleteSubject(${s.id})">🗑</button></div>`).join('')}
-async function deleteSubject(id){if(!confirm('Delete?'))return;await sb.from('subjects').delete().eq('id',id);await sb.from('enrollments').delete().eq('subject_id',id);await sb.from('scores').delete().eq('subject_id',id);showToast('🗑 Deleted');await loadAllData()}
+  async function addProgramme() {
+    const n = document.getElementById('progName').value.trim();
+    const l = document.getElementById('progLevel').value;
+    if (!n) return showToast('Enter name');
+    await sb.from('programmes').insert([{ school_id: currentSchool.id, name: n, level: l }]);
+    showToast('✅ Added!');
+    document.getElementById('progName').value = '';
+    await loadAllData();
+  }
 
-// STUDENTS
-async function addStudent(){const n=document.getElementById('addStudentName').value.trim(),e=document.getElementById('addStudentEmail').value.trim(),p=document.getElementById('addStudentPhone').value.trim();if(!n){showToast('Enter name');return}const{data:last}=await sb.from('students').select('student_id').eq('school_id',currentSchool.id).order('id',{ascending:false}).limit(1);let next=1;if(last&&last.length>0){const num=parseInt(last[0].student_id.replace(/[^0-9]/g,''));if(!isNaN(num))next=num+1}const sid='STU'+String(next).padStart(3,'0');await sb.from('students').insert([{school_id:currentSchool.id,student_id:sid,name:n,email:e,phone:p,password:hashPassword('student123'),approved:true}]);showToast('✅ Student added! ID: '+sid);document.getElementById('addStudentName').value='';document.getElementById('addStudentEmail').value='';document.getElementById('addStudentPhone').value='';await loadAllData()}
-async function renderStudents(){const search=(document.getElementById('studentSearchInput')?.value||'').trim().toLowerCase();const pending=schoolData.students.filter(s=>!s.approved),pd=document.getElementById('pendingStudents');pd.innerHTML=pending.length?pending.map(s=>`<div style="border:1px solid #ffc107;padding:.6rem;border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center"><span>🆔 ${s.student_id} — ${s.name}</span><button class="btn-success btn-sm" onclick="approveStudent(${s.id})">✅ Approve</button></div>`).join(''):'';let students=schoolData.students;if(search)students=students.filter(s=>s.name.toLowerCase().includes(search)||s.student_id.toLowerCase().includes(search));const tb=document.getElementById('studentsTableBody');tb.innerHTML=students.length?students.map(s=>{const prog=schoolData.programmes.find(p=>p.id===s.programme_id);return`<tr><td>${s.student_id}</td><td><strong>${s.name}</strong></td><td>${s.email||'—'}</td><td>${prog?prog.name:'—'}</td><td><span class="status-badge ${s.approved?'status-active':'status-pending'}">${s.approved?'Active':'Pending'}</span></td><td>${!s.approved?`<button class="btn-success btn-sm" onclick="approveStudent(${s.id})">Approve</button>`:`<button class="btn-danger btn-sm" onclick="removeStudent(${s.id},'${s.name}')">🗑</button>`}</td></tr>`}).join(''):'<tr><td colspan="6" style="text-align:center">No students</td></tr>'}
-async function approveStudent(id){await sb.from('students').update({approved:true}).eq('id',id);showToast('✅ Approved!');await loadAllData()}
-async function removeStudent(id,name){if(!confirm('Remove '+name+'?'))return;await sb.from('enrollments').delete().eq('student_id',id);await sb.from('scores').delete().eq('student_id',id);await sb.from('students').delete().eq('id',id);showToast('🗑 Removed');await loadAllData()}
+  function renderProgrammes() {
+    const c = document.getElementById('programmesList');
+    if (!schoolData.programmes.length) {
+      c.innerHTML = '<p>No programmes</p>';
+      return;
+    }
+    c.innerHTML = schoolData.programmes.map(p => `
+      <div style="border:1px solid var(--border);padding:.8rem;border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center">
+        <div><strong>${p.name}</strong> <span class="level-badge ${p.level==='JHS'?'level-jhs':'level-shs'}">${p.level}</span></div>
+        <button class="btn-danger btn-sm" onclick="deleteProgramme(${p.id})">🗑</button>
+      </div>`).join('');
+  }
 
-// SCORES
-async function recordScore(){const sid=document.getElementById('scoreSubject').value,stid=document.getElementById('scoreStudent').value,t=parseInt(document.getElementById('scoreTerm').value),cs=parseFloat(document.getElementById('classScore').value)||0,es=parseFloat(document.getElementById('examScore').value)||0;if(!sid||!stid){showToast('Select subject and student');return}const fs=(cs*0.4)+(es*0.6);await sb.from('scores').insert([{school_id:currentSchool.id,student_id:parseInt(stid),subject_id:parseInt(sid),term:t,class_score:cs,exam_score:es,final_score:fs}]);showToast('✅ Score recorded!');document.getElementById('classScore').value='';document.getElementById('examScore').value='';await loadAllData()}
-async function renderRecentScores(){const c=document.getElementById('recentScores'),r=schoolData.scores.slice(0,20);c.innerHTML=r.length?`<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Student</th><th>Subject</th><th>Term</th><th>Final</th><th>Grade</th></tr></thead><tbody>${r.map(sc=>{const st=schoolData.students.find(s=>s.id===sc.student_id),su=schoolData.subjects.find(s=>s.id===sc.subject_id),g=getGrade(sc.final_score);return`<tr><td>${new Date(sc.date).toLocaleDateString()}</td><td>${st?st.name:'—'}</td><td>${su?su.name:'—'}</td><td>T${sc.term}</td><td><strong>${sc.final_score.toFixed(1)}%</strong></td><td><span class="${g.class}">${g.grade}</span></td></tr>`}).join('')}</tbody></table></div>`:'<p style="color:var(--text2)">No assessments</p>'}
+  async function deleteProgramme(id) {
+    if (!confirm('Delete?')) return;
+    await sb.from('programmes').delete().eq('id', id);
+    await sb.from('subjects').delete().eq('programme_id', id);
+    showToast('🗑 Deleted');
+    await loadAllData();
+  }
 
-// REPORTS
-function filterReportStudents(){const s=(document.getElementById('reportSearchInput').value||'').trim().toLowerCase();const sel=document.getElementById('reportStudent');const students=s?schoolData.students.filter(st=>st.name.toLowerCase().includes(s)||st.student_id.toLowerCase().includes(s)):schoolData.students;sel.innerHTML='<option value="">Select Student</option>'+students.filter(st=>st.approved).map(st=>`<option value="${st.id}">${st.name} (${st.student_id})</option>`).join('')}
-async function generateReport(){const stid=document.getElementById('reportStudent').value,t=parseInt(document.getElementById('reportTerm').value),c=document.getElementById('reportResult');if(!stid){showToast('Select student');return}const st=schoolData.students.find(s=>s.id===parseInt(stid));if(!st)return;const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===t);let total=0,count=0;let h=`<div class="card"><h3>📋 ${st.name}</h3><p>🆔 ${st.student_id} | Term ${t}</p><div class="table-wrapper"><table><thead><tr><th>Subject</th><th>Class</th><th>Exam</th><th>Final</th><th>Grade</th></tr></thead><tbody>`;ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id),g=getGrade(sc.final_score);total+=sc.final_score;count++;h+=`<tr><td>${su?su.name:'—'}</td><td>${sc.class_score}%</td><td>${sc.exam_score}%</td><td><strong>${sc.final_score.toFixed(1)}%</strong></td><td><span class="${g.class}">${g.grade}</span></td></tr>`});const avg=count>0?(total/count).toFixed(1):0,ov=getGrade(parseFloat(avg));h+=`</tbody></table></div><div style="text-align:center;margin-top:1rem;padding:1rem;background:#e8f5e9;border-radius:.5rem"><h3>Overall: ${avg}%</h3><span class="${ov.class}" style="font-size:1.5rem;padding:8px 20px">${ov.grade}</span></div><div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap"><button class="btn-sm" onclick="window.print()">🖨 Print</button><button class="btn-sm btn-info" onclick="downloadReportPDF('${st.id}',${t})"><i class="fas fa-file-pdf"></i> PDF</button><button class="btn-sm btn-success" onclick="downloadReportExcel('${st.id}',${t})"><i class="fas fa-file-excel"></i> Excel</button><button class="btn-sm btn-email" onclick="chooseEmailFormat('${st.id}',${t})"><i class="fas fa-envelope"></i> Email</button></div></div>`;c.innerHTML=h}
-function chooseEmailFormat(stid,term){const st=schoolData.students.find(s=>s.id===parseInt(stid));if(!st||!st.email){showToast('❌ No email');return}const modal=document.createElement('div');modal.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:3000;display:flex;align-items:center;justify-content:center';modal.innerHTML='<div style="background:white;border-radius:1rem;padding:2rem;max-width:400px;width:90%;text-align:center"><h3>📧 Send Report</h3><p>'+st.name+'</p><p style="color:#666">'+st.email+'</p><p style="font-weight:600">Choose Format:</p><div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap"><button class="btn-sm btn-info" id="emPDF"><i class="fas fa-file-pdf"></i> PDF</button><button class="btn-sm btn-success" id="emExcel"><i class="fas fa-file-excel"></i> Excel</button><button class="btn-sm btn-warning" id="emWord"><i class="fas fa-file-word"></i> Word</button></div><button class="btn-sm" style="background:#999;color:white;margin-top:1rem" id="emCancel">Cancel</button></div>';document.body.appendChild(modal);document.getElementById('emPDF').onclick=()=>{modal.remove();sendEmailWithFormat(stid,term,'pdf')};document.getElementById('emExcel').onclick=()=>{modal.remove();sendEmailWithFormat(stid,term,'excel')};document.getElementById('emWord').onclick=()=>{modal.remove();sendEmailWithFormat(stid,term,'word')};document.getElementById('emCancel').onclick=()=>modal.remove();modal.onclick=e=>{if(e.target===modal)modal.remove()}}async function sendEmailWithFormat(stid,term,format){const st=schoolData.students.find(s=>s.id===parseInt(stid));if(!st||!st.email){showToast('❌ No email');return}const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===term);let total=0,count=0;let html='<h3>📋 Student Report</h3><p>School: '+currentSchool.name+'</p><p>'+st.name+' ('+st.student_id+') | Term '+term+' | '+format.toUpperCase()+'</p><table border="1" style="border-collapse:collapse;width:100%"><tr style="background:#2e7d32;color:white"><th>Subject</th><th>Class</th><th>Exam</th><th>Final</th><th>Grade</th></tr>';ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id),g=getGrade(sc.final_score);total+=sc.final_score;count++;html+='<tr><td>'+(su?su.name:'—')+'</td><td>'+sc.class_score+'%</td><td>'+sc.exam_score+'%</td><td><strong>'+sc.final_score.toFixed(1)+'%</strong></td><td>'+g.grade+'</td></tr>'});html+='</table><h3>Overall: '+(count>0?(total/count).toFixed(1):0)+'%</h3><p><em>Teacher: '+currentTeacher.name+' | Milestone SMS</em></p>';try{showToast('📧 Sending '+format.toUpperCase()+'...');await emailjs.send('service_u0nogau','template_z1c20a3',{to_email:st.email,to_name:st.name,from_name:currentTeacher.name,subject:'Term '+term+' Report - '+st.name,message:html,school_name:currentSchool.name});showToast('✅ '+format.toUpperCase()+' sent!')}catch(e){showToast('❌ Failed')}}function downloadReportPDF(stid,term){const{jsPDF}=window.jspdf;const doc=new jsPDF();const st=schoolData.students.find(s=>s.id===parseInt(stid));doc.setFontSize(16);doc.text(st.name+' - Report',10,20);doc.setFontSize(10);const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===term);let y=35;doc.text('Subject | Class | Exam | Final | Grade',10,y);y+=8;ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id);doc.text((su?su.name:'—')+' | '+sc.class_score+'% | '+sc.exam_score+'% | '+sc.final_score.toFixed(1)+'% | '+getGrade(sc.final_score).grade,10,y);y+=7});doc.save('report_'+st.student_id+'_term'+term+'.pdf');showToast('✅ PDF saved!')}
-function downloadReportExcel(stid,term){const st=schoolData.students.find(s=>s.id===parseInt(stid));const ss=schoolData.scores.filter(s=>s.student_id===parseInt(stid)&&s.term===term);const data=[['Subject','Class','Exam','Final','Grade']];ss.forEach(sc=>{const su=schoolData.subjects.find(s=>s.id===sc.subject_id);data.push([su?su.name:'—',sc.class_score,sc.exam_score,sc.final_score.toFixed(1),getGrade(sc.final_score).grade])});const ws=XLSX.utils.aoa_to_sheet(data);const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Report');XLSX.writeFile(wb,'report_'+st.student_id+'_term'+term+'.xlsx');showToast('✅ Excel saved!')}
+  async function addSubject() {
+    const pid = document.getElementById('subjectProgramme').value;
+    const n = document.getElementById('subjectName').value.trim();
+    if (!pid || !n) return showToast('Select programme and enter name');
+    await sb.from('subjects').insert([{ school_id: currentSchool.id, programme_id: parseInt(pid), name: n }]);
+    showToast('✅ Added!');
+    document.getElementById('subjectName').value = '';
+    await loadAllData();
+  }
 
-// CLASS REPORT WITH POSITIONS (GHANA STYLE)
-// Format position with superscript (1ST, 2ND, 3RD, 4TH, etc.)
-function formatPosition(pos) {
-    if (pos === 1) return '1ST';
-    if (pos === 2) return '2ND';
-    if (pos === 3) return '3RD';
-    return pos + 'TH';
-}
+  function renderSubjects() {
+    const sel = document.getElementById('subjectProgramme');
+    sel.innerHTML = '<option value="">Select Programme</option>' + schoolData.programmes.map(p => `<option value="${p.id}">${p.name} (${p.level})</option>`).join('');
+    const c = document.getElementById('subjectsList');
+    if (!schoolData.subjects.length) {
+      c.innerHTML = '<p>No subjects</p>';
+      return;
+    }
+    c.innerHTML = schoolData.subjects.map(s => `
+      <div style="border:1px solid var(--border);padding:.6rem;border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center">
+        <span>📖 <strong>${s.name}</strong></span>
+        <button class="btn-danger btn-sm" onclick="deleteSubject(${s.id})">🗑</button>
+      </div>`).join('');
+  }
 
-// CLASS REPORT WITH POSITIONS (GHANA STYLE)
-function buildClassReport(term){
-    const approved=schoolData.students.filter(s=>s.approved);
-    const subs=schoolData.subjects;
-    if(!approved.length)return null;
-    let students=[];
-    approved.forEach(st=>{
-        const ss=schoolData.scores.filter(sc=>sc.student_id===st.id&&sc.term===term);
-        let total=0,cnt=0;let scores={};
-        subs.forEach(su=>{const f=ss.find(sc=>sc.subject_id===su.id);if(f){scores[su.name]={class:f.class_score,exam:f.exam_score,final:f.final_score,grade:getGrade(f.final_score)};total+=f.final_score;cnt++}else{scores[su.name]=null}});
-        students.push({id:st.student_id,name:st.name,email:st.email||'—',subjects:scores,total,count:cnt,avg:cnt>0?(total/cnt).toFixed(1):0,grade:cnt>0?getGrade(total/cnt):{grade:'N/A'}});
+  async function deleteSubject(id) {
+    if (!confirm('Delete?')) return;
+    await sb.from('subjects').delete().eq('id', id);
+    await sb.from('scores').delete().eq('subject_id', id);
+    showToast('🗑 Deleted');
+    await loadAllData();
+  }
+
+  async function addStudent() {
+    const n = document.getElementById('addStudentName').value.trim();
+    const e = document.getElementById('addStudentEmail').value.trim();
+    const p = document.getElementById('addStudentPhone').value.trim();
+    if (!n) return showToast('Enter name');
+    const { data: last } = await sb.from('students').select('student_id').eq('school_id', currentSchool.id).order('id', { ascending: false }).limit(1);
+    let next = 1;
+    if (last && last.length > 0) {
+      const num = parseInt(last[0].student_id.replace(/[^0-9]/g, ''));
+      if (!isNaN(num)) next = num + 1;
+    }
+    const sid = 'STU' + String(next).padStart(3, '0');
+    await sb.from('students').insert([{ school_id: currentSchool.id, student_id: sid, name: n, email: e, phone: p, password: hashPassword('student123'), approved: true }]);
+    showToast('✅ Student added! ID: ' + sid);
+    document.getElementById('addStudentName').value = '';
+    document.getElementById('addStudentEmail').value = '';
+    document.getElementById('addStudentPhone').value = '';
+    await loadAllData();
+  }
+
+  function renderStudents() {
+    const search = (document.getElementById('studentSearchInput')?.value || '').trim().toLowerCase();
+    const pending = schoolData.students.filter(s => !s.approved);
+    document.getElementById('pendingStudents').innerHTML = pending.length ? pending.map(s => `
+      <div style="border:1px solid #ffc107;padding:.6rem;border-radius:.5rem;margin-bottom:.5rem;display:flex;justify-content:space-between;align-items:center">
+        <span>🆔 ${s.student_id} — ${s.name}</span>
+        <button class="btn-success btn-sm" onclick="approveStudent(${s.id})">✅ Approve</button>
+      </div>`).join('') : '';
+    let students = schoolData.students;
+    if (search) students = students.filter(s => s.name.toLowerCase().includes(search) || s.student_id.toLowerCase().includes(search));
+    const tb = document.getElementById('studentsTableBody');
+    tb.innerHTML = students.length ? students.map(s => {
+      const prog = schoolData.programmes.find(p => p.id === s.programme_id);
+      return `<tr>
+        <td>${s.student_id}</td><td><strong>${s.name}</strong></td><td>${s.email || '—'}</td><td>${prog ? prog.name : '—'}</td>
+        <td><span class="status-badge ${s.approved ? 'status-active' : 'status-pending'}">${s.approved ? 'Active' : 'Pending'}</span></td>
+        <td>${!s.approved ? `<button class="btn-success btn-sm" onclick="approveStudent(${s.id})">Approve</button>` : `<button class="btn-danger btn-sm" onclick="removeStudent(${s.id},'${s.name}')">🗑</button>`}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="6">No students</td></tr>';
+  }
+
+  async function approveStudent(id) {
+    await sb.from('students').update({ approved: true }).eq('id', id);
+    showToast('✅ Approved!');
+    await loadAllData();
+  }
+
+  async function removeStudent(id, name) {
+    if (!confirm('Remove ' + name + '?')) return;
+    await sb.from('scores').delete().eq('student_id', id);
+    await sb.from('students').delete().eq('id', id);
+    showToast('🗑 Removed');
+    await loadAllData();
+  }
+
+  async function recordScore() {
+    const sid = document.getElementById('scoreSubject').value;
+    const stid = document.getElementById('scoreStudent').value;
+    const t = parseInt(document.getElementById('scoreTerm').value);
+    const cs = parseFloat(document.getElementById('classScore').value) || 0;
+    const es = parseFloat(document.getElementById('examScore').value) || 0;
+    if (!sid || !stid) return showToast('Select subject and student');
+    const fs = (cs * 0.4) + (es * 0.6);
+    await sb.from('scores').insert([{ school_id: currentSchool.id, student_id: parseInt(stid), subject_id: parseInt(sid), term: t, class_score: cs, exam_score: es, final_score: fs }]);
+    showToast('✅ Score recorded!');
+    document.getElementById('classScore').value = '';
+    document.getElementById('examScore').value = '';
+    await loadAllData();
+  }
+
+  function renderRecentScores() {
+    const c = document.getElementById('recentScores');
+    const r = schoolData.scores.slice(0, 20);
+    c.innerHTML = r.length ? `<div class="table-wrapper"><table><thead><tr><th>Date</th><th>Student</th><th>Subject</th><th>Term</th><th>Final</th><th>Grade</th></tr></thead><tbody>${r.map(sc => {
+      const st = schoolData.students.find(s => s.id === sc.student_id);
+      const su = schoolData.subjects.find(s => s.id === sc.subject_id);
+      const g = getGrade(sc.final_score);
+      return `<tr><td>${new Date(sc.date).toLocaleDateString()}</td><td>${st?.name || '—'}</td><td>${su?.name || '—'}</td><td>T${sc.term}</td><td><strong>${sc.final_score.toFixed(1)}%</strong></td><td><span class="${g.class}">${g.grade}</span></td></tr>`;
+    }).join('')}</tbody></table></div>` : '<p>No assessments</p>';
+  }
+
+  function filterReportStudents() {
+    const s = (document.getElementById('reportSearchInput').value || '').trim().toLowerCase();
+    const sel = document.getElementById('reportStudent');
+    const students = s ? schoolData.students.filter(st => st.name.toLowerCase().includes(s) || st.student_id.toLowerCase().includes(s)) : schoolData.students;
+    sel.innerHTML = '<option value="">Select Student</option>' + students.filter(st => st.approved).map(st => `<option value="${st.id}">${st.name} (${st.student_id})</option>`).join('');
+  }
+
+  function generateReport() {
+    const stid = document.getElementById('reportStudent').value;
+    const t = parseInt(document.getElementById('reportTerm').value);
+    const c = document.getElementById('reportResult');
+    if (!stid) return showToast('Select student');
+    const st = schoolData.students.find(s => s.id === parseInt(stid));
+    if (!st) return;
+    const ss = schoolData.scores.filter(s => s.student_id === parseInt(stid) && s.term === t);
+    let total = 0, count = 0;
+    let h = `<div class="card"><h3>📋 ${st.name}</h3><p>🆔 ${st.student_id} | Term ${t}</p><div class="table-wrapper"><table><thead><tr><th>Subject</th><th>Class</th><th>Exam</th><th>Final</th><th>Grade</th></tr></thead><tbody>`;
+    ss.forEach(sc => {
+      const su = schoolData.subjects.find(s => s.id === sc.subject_id);
+      const g = getGrade(sc.final_score);
+      total += sc.final_score;
+      count++;
+      h += `<tr><td>${su?.name || '—'}</td><td>${sc.class_score}%</td><td>${sc.exam_score}%</td><td><strong>${sc.final_score.toFixed(1)}%</strong></td><td><span class="${g.class}">${g.grade}</span></td></tr>`;
     });
-    students.sort((a,b)=>b.avg-a.avg);
-    students.forEach((s,i)=>{s.position=i+1;s.positionText=formatPosition(i+1)});
-    return{students,subjects:subs,term};
-}
+    const avg = count > 0 ? (total / count).toFixed(1) : 0;
+    const ov = getGrade(parseFloat(avg));
+    h += `</tbody></table></div><div style="text-align:center;margin-top:1rem;padding:1rem;background:#e8f5e9;border-radius:.5rem"><h3>Overall: ${avg}%</h3><span class="${ov.class}" style="font-size:1.5rem;padding:8px 20px">${ov.grade}</span></div>
+    <div style="display:flex;gap:.5rem;margin-top:1rem"><button class="btn-sm" onclick="window.print()">🖨 Print</button>
+    <button class="btn-sm btn-email" onclick="chooseEmailFormat('${st.id}',${t})"><i class="fas fa-envelope"></i> Email</button></div></div>`;
+    c.innerHTML = h;
+  }
 
-function downloadClassReportPDF(){
-    const t=parseInt(document.getElementById('classReportTerm').value);
-    const r=buildClassReport(t);
-    if(!r||!r.students.length){showToast('No students');return}
-    const{jsPDF}=window.jspdf;
-    const doc=new jsPDF('landscape');
+  function chooseEmailFormat(stid, term) {
+    const st = schoolData.students.find(s => s.id === parseInt(stid));
+    if (!st || !st.email) return showToast('❌ No email');
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:3000;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = `<div style="background:white;border-radius:1rem;padding:2rem;max-width:400px;width:90%;text-align:center"><h3>📧 Send Report</h3><p>${st.name}</p><p style="color:#666">${st.email}</p><div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap"><button class="btn-sm btn-info" id="emPDF">PDF</button><button class="btn-sm btn-success" id="emExcel">Excel</button><button class="btn-sm btn-warning" id="emWord">Word</button></div><button class="btn-sm" style="background:#999;margin-top:1rem" id="emCancel">Cancel</button></div>`;
+    document.body.appendChild(modal);
+    document.getElementById('emPDF').onclick = () => { modal.remove(); sendEmailWithFormat(stid, term, 'pdf'); };
+    document.getElementById('emExcel').onclick = () => { modal.remove(); sendEmailWithFormat(stid, term, 'excel'); };
+    document.getElementById('emWord').onclick = () => { modal.remove(); sendEmailWithFormat(stid, term, 'word'); };
+    document.getElementById('emCancel').onclick = () => modal.remove();
+    modal.onclick = e => { if (e.target === modal) modal.remove(); };
+  }
+
+  async function sendEmailWithFormat(stid, term, format) {
+    const st = schoolData.students.find(s => s.id === parseInt(stid));
+    if (!st || !st.email) return showToast('❌ No email');
+    const ss = schoolData.scores.filter(s => s.student_id === parseInt(stid) && s.term === term);
+    let total = 0, count = 0;
+    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial;background:#f5f5f5;padding:20px}.container{max-width:600px;margin:0 auto;background:white;border-radius:10px;padding:30px}h2{color:#1a472a}table{width:100%;border-collapse:collapse}th{background:#2e7d32;color:white;padding:8px}td{padding:8px;border:1px solid #ddd}.summary{background:#e8f5e9;padding:15px;border-radius:8px;text-align:center}</style></head><body><div class="container"><h2>📋 STUDENT REPORT</h2><p><strong>${currentSchool.name}</strong></p><p>Student: ${st.name} (${st.student_id}) | Term: ${term}</p><table><thead><tr><th>Subject</th><th>Class</th><th>Exam</th><th>Final</th><th>Grade</th></tr></thead><tbody>`;
+    ss.forEach(sc => {
+      const su = schoolData.subjects.find(s => s.id === sc.subject_id);
+      const g = getGrade(sc.final_score);
+      total += sc.final_score;
+      count++;
+      html += `<tr><td>${su?.name || '—'}</td><td>${sc.class_score}%</td><td>${sc.exam_score}%</td><td>${sc.final_score.toFixed(1)}%</td><td>${g.grade}</td></tr>`;
+    });
+    const avg = count > 0 ? (total / count).toFixed(1) : 0;
+    html += `</tbody></table><div class="summary"><h3>Overall: ${avg}%</h3></div><p>Teacher: ${currentTeacher.name}</p></div></body></html>`;
+    try {
+      showToast('📧 Sending...');
+      await emailjs.send('service_u0nogau', 'template_z1c20a3', {
+        to_email: st.email,
+        to_name: st.name,
+        from_name: currentTeacher.name,
+        subject: `Term ${term} Report - ${st.name} | ${currentSchool.name}`,
+        message: html,
+        school_name: currentSchool.name
+      });
+      showToast('✅ Report sent!');
+    } catch (e) {
+      showToast('❌ Failed: ' + e.message);
+    }
+  }
+
+  function buildClassReport(term) {
+    const approved = schoolData.students.filter(s => s.approved);
+    const subs = schoolData.subjects;
+    if (!approved.length) return null;
+    let students = [];
+    approved.forEach(st => {
+      const ss = schoolData.scores.filter(sc => sc.student_id === st.id && sc.term === term);
+      let total = 0, cnt = 0;
+      let scores = {};
+      subs.forEach(su => {
+        const f = ss.find(sc => sc.subject_id === su.id);
+        if (f) {
+          scores[su.name] = { class: f.class_score, exam: f.exam_score, final: f.final_score, grade: getGrade(f.final_score) };
+          total += f.final_score;
+          cnt++;
+        } else {
+          scores[su.name] = null;
+        }
+      });
+      students.push({
+        id: st.student_id,
+        name: st.name,
+        email: st.email || '—',
+        subjects: scores,
+        total,
+        count: cnt,
+        avg: cnt > 0 ? (total / cnt).toFixed(1) : 0,
+        grade: cnt > 0 ? getGrade(total / cnt) : { grade: 'N/A' }
+      });
+    });
+    students.sort((a, b) => b.avg - a.avg);
+    students.forEach((s, i) => { s.position = i + 1; s.positionText = formatPosition(i + 1); });
+    return { students, subjects: subs, term };
+  }
+
+  function downloadClassReportPDF() {
+    const t = parseInt(document.getElementById('classReportTerm').value);
+    const r = buildClassReport(t);
+    if (!r || !r.students.length) return showToast('No students');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('landscape');
     doc.setFontSize(14);
-    doc.text(currentSchool.name+' - Term '+t+' Report',10,15);
+    doc.text(`${currentSchool.name} - Term ${t} Report`, 10, 15);
     doc.setFontSize(8);
-    let y=25;
-    const headers=['Pos','ID','Name'];
-    r.subjects.forEach(s=>headers.push(s.name.substring(0,8)));
-    headers.push('Total','Avg','Grade');
-    let x=5;
-    const w=[18,25,35];
-    r.subjects.forEach(()=>w.push(22));
-    w.push(22,20,18);
-    doc.setFillColor(230,230,230);
-    headers.forEach((h,i)=>{doc.rect(x,y,w[i],7,'FD');doc.text(h,x+2,y+5);x+=w[i]});
-    y+=8;
-    r.students.forEach((st,i)=>{
-        x=5;
-        const row=[st.positionText,st.id,st.name.substring(0,18)];
-        r.subjects.forEach(s=>{const sc=st.subjects[s.name];row.push(sc?sc.final.toFixed(1):'—')});
-        row.push(st.total.toFixed(1),st.avg,st.grade.grade);
-        if(i%2===0)doc.setFillColor(245,245,245);
-        row.forEach((val,j)=>{
-            doc.rect(x,y,w[j],7,i%2===0?'FD':'D');
-            doc.text(String(val),x+2,y+5);
-            x+=w[j];
-        });
-        y+=7;
+    let y = 25;
+    const headers = ['Pos', 'ID', 'Name'];
+    r.subjects.forEach(s => headers.push(s.name.substring(0, 8)));
+    headers.push('Total', 'Avg', 'Grade');
+    let x = 5;
+    const w = [18, 25, 35];
+    r.subjects.forEach(() => w.push(22));
+    w.push(22, 20, 18);
+    doc.setFillColor(230, 230, 230);
+    headers.forEach((h, i) => { doc.rect(x, y, w[i], 7, 'FD'); doc.text(h, x + 2, y + 5); x += w[i]; });
+    y += 8;
+    r.students.forEach((st, i) => {
+      x = 5;
+      const row = [st.positionText, st.id, st.name.substring(0, 18)];
+      r.subjects.forEach(s => { const sc = st.subjects[s.name]; row.push(sc ? sc.final.toFixed(1) : '—'); });
+      row.push(st.total.toFixed(1), st.avg, st.grade.grade);
+      if (i % 2 === 0) doc.setFillColor(245, 245, 245);
+      row.forEach((val, j) => {
+        doc.rect(x, y, w[j], 7, i % 2 === 0 ? 'FD' : 'D');
+        doc.text(String(val), x + 2, y + 5);
+        x += w[j];
+      });
+      y += 7;
     });
-    doc.save('class_report_term'+t+'.pdf');
+    doc.save(`class_report_term${t}.pdf`);
     showToast('✅ PDF saved!');
-}
+  }
 
-// EXCEL DOWNLOAD - School name at top, no remarks
-function downloadClassReportExcel(){
-    const t=parseInt(document.getElementById('classReportTerm').value);
-    const r=buildClassReport(t);
-    if(!r||!r.students.length){showToast('No students');return}
-    
-    // School header rows
-    const data=[];
+  function downloadClassReportExcel() {
+    const t = parseInt(document.getElementById('classReportTerm').value);
+    const r = buildClassReport(t);
+    if (!r || !r.students.length) return showToast('No students');
+    const data = [];
     data.push([currentSchool.name]);
-    data.push(['Term '+t+' Class Report']);
-    data.push(['Generated: '+new Date().toLocaleDateString()]);
-    data.push([]); // Empty row
-    
-    // Column headers
-    const headers=['Position','ID','Name','Email'];
-    r.subjects.forEach(s=>{headers.push(s.name+' Class',s.name+' Exam',s.name+' Final',s.name+' Grade')});
-    headers.push('Total','Average','Overall Grade');
-    data.push(headers);
-    
-    // Student rows
-    r.students.forEach(st=>{
-        const row=[st.positionText,st.id,st.name,st.email];
-        r.subjects.forEach(s=>{
-            const sc=st.subjects[s.name];
-            if(sc){row.push(sc.class,sc.exam,sc.final,sc.grade.grade)}else{row.push('—','—','—','—')}
-        });
-        row.push(st.total.toFixed(1),st.avg,st.grade.grade);
-        data.push(row);
-    });
-    
-    // Summary
+    data.push([`Term ${t} Class Report`]);
+    data.push([`Generated: ${new Date().toLocaleDateString()}`]);
     data.push([]);
-    data.push(['Total Students: '+r.students.length]);
-    data.push(['Teacher: '+currentTeacher.name]);
-    
-    const ws=XLSX.utils.aoa_to_sheet(data);
-    
-    // Merge school name across all columns
-    ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:headers.length-1}}];
-    ws['!cols']=headers.map(()=>({wch:14}));
-    
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,'Class Report');
-    XLSX.writeFile(wb,'class_report_term'+t+'.xlsx');
-    showToast('✅ Excel saved!');
-}
-
-// WORD DOWNLOAD - Full Ghanaian report format with remarks, vacation, reopening dates
-function downloadClassReportWord(){
-    const t=parseInt(document.getElementById('classReportTerm').value);
-    const r=buildClassReport(t);
-    if(!r||!r.students.length){showToast('No students');return}
-    
-    // Calculate vacation and reopening dates based on term
-    let vacationDate='', reopeningDate='';
-    const currentYear=new Date().getFullYear();
-    if(t===1){vacationDate='April 15, '+currentYear;reopeningDate='May 5, '+currentYear}
-    else if(t===2){vacationDate='August 15, '+currentYear;reopeningDate='September 10, '+currentYear}
-    else{vacationDate='December 15, '+currentYear;reopeningDate='January 10, '+(currentYear+1)}
-    
-    let h='<html><head><meta charset="UTF-8"><style>';
-    h+='body{font-family:Arial,sans-serif;font-size:12px}';
-    h+='h1{text-align:center;font-size:18px;margin-bottom:5px}';
-    h+='h2{text-align:center;font-size:14px;margin-bottom:3px}';
-    h+='h3{text-align:center;font-size:12px;margin-bottom:15px}';
-    h+='table{border-collapse:collapse;width:100%;margin-bottom:15px}';
-    h+='th{background:#2e7d32;color:white;padding:8px 5px;font-size:10px;text-align:center}';
-    h+='td{padding:6px 4px;font-size:10px;text-align:center;border:1px solid #999}';
-    h+='.school-header{background:#e8f5e9;font-size:14px;font-weight:bold}';
-    h+='.section-title{background:#c8e6c9;font-weight:bold;font-size:11px}';
-    h+='.remarks-input{min-width:80px;color:#333}';
-    h+='.footer{font-size:10px;margin-top:20px}';
-    h+='.signature-line{border-top:1px solid #000;width:200px;margin-top:30px;display:inline-block}';
-    h+='.position-1{background:#fff9c4;font-weight:bold}';
-    h+='.position-2{background:#f5f5f5;font-weight:bold}';
-    h+='.position-3{background:#ffe0b2;font-weight:bold}';
-    h+='</style></head><body>';
-    
-    // School Header
-    h+='<h1>'+currentSchool.name.toUpperCase()+'</h1>';
-    h+='<h2>END OF TERM '+t+' REPORT</h2>';
-    h+='<h3>Academic Year: '+currentYear+'</h3>';
-    
-    // Class Summary
-    h+='<table><tr><td class="school-header" colspan="4">CLASS SUMMARY</td></tr>';
-    h+='<tr><td><strong>Total Students:</strong> '+r.students.length+'</td>';
-    h+='<td><strong>Teacher:</strong> '+currentTeacher.name+'</td>';
-    h+='<td><strong>Term:</strong> '+t+'</td>';
-    h+='<td><strong>Date:</strong> '+new Date().toLocaleDateString()+'</td></tr></table>';
-    
-    // Main Report Table
-    h+='<table>';
-    
-    // Header row
-    h+='<tr><th rowspan="2">Pos</th><th rowspan="2">ID</th><th rowspan="2">Name</th>';
-    r.subjects.forEach(s=>h+='<th colspan="4">'+s.name+'</th>');
-    h+='<th rowspan="2">Total</th><th rowspan="2">Avg</th><th rowspan="2">Grade</th><th rowspan="2">Remarks</th></tr>';
-    
-    // Sub-headers for Class, Exam, Final, Grade
-    h+='<tr>';
-    r.subjects.forEach(()=>h+='<th>Class</th><th>Exam</th><th>Final</th><th>Grade</th>');
-    h+='</tr>';
-    
-    // Student rows
-    r.students.forEach(st=>{
-        let posClass='';
-        if(st.position===1)posClass='position-1';
-        else if(st.position===2)posClass='position-2';
-        else if(st.position===3)posClass='position-3';
-        
-        h+='<tr class="'+posClass+'">';
-        h+='<td><strong>'+st.positionText+'</strong></td>';
-        h+='<td>'+st.id+'</td>';
-        h+='<td style="text-align:left">'+st.name+'</td>';
-        
-        r.subjects.forEach(s=>{
-            const sc=st.subjects[s.name];
-            if(sc){
-                h+='<td>'+sc.class+'%</td>';
-                h+='<td>'+sc.exam+'%</td>';
-                h+='<td><strong>'+sc.final.toFixed(1)+'%</strong></td>';
-                h+='<td><strong>'+sc.grade.grade+'</strong></td>';
-            }else{
-                h+='<td>—</td><td>—</td><td>—</td><td>—</td>';
-            }
-        });
-        
-        h+='<td><strong>'+st.total.toFixed(1)+'</strong></td>';
-        h+='<td>'+st.avg+'%</td>';
-        h+='<td><strong>'+st.grade.grade+'</strong></td>';
-        
-        // Generate automatic remarks based on grade
-        let remarks='';
-        const avgGrade=parseFloat(st.avg);
-        if(avgGrade>=80)remarks='Excellent performance. Keep it up!';
-        else if(avgGrade>=70)remarks='Very good. Continue working hard.';
-        else if(avgGrade>=60)remarks='Good. Room for improvement.';
-        else if(avgGrade>=50)remarks='Average. Needs more effort.';
-        else if(avgGrade>=40)remarks='Below average. Must improve.';
-        else if(avgGrade>0)remarks='Poor performance. Needs serious attention.';
-        else remarks='No assessment data.';
-        h+='<td class="remarks-input">'+remarks+'</td>';
-        
-        h+='</tr>';
+    const headers = ['Position', 'ID', 'Name', 'Email'];
+    r.subjects.forEach(s => { headers.push(s.name + ' Class', s.name + ' Exam', s.name + ' Final', s.name + ' Grade'); });
+    headers.push('Total', 'Average', 'Overall Grade');
+    data.push(headers);
+    r.students.forEach(st => {
+      const row = [st.positionText, st.id, st.name, st.email];
+      r.subjects.forEach(s => {
+        const sc = st.subjects[s.name];
+        if (sc) { row.push(sc.class, sc.exam, sc.final, sc.grade.grade); }
+        else { row.push('—', '—', '—', '—'); }
+      });
+      row.push(st.total.toFixed(1), st.avg, st.grade.grade);
+      data.push(row);
     });
-    
-    h+='</table>';
-    
-    // Student Attitude & Overall Remarks
-    h+='<h3 style="text-align:left;margin-top:20px">📝 GENERAL CLASS REMARKS</h3>';
-    h+='<table><tr><th>Category</th><th>Remarks</th></tr>';
-    h+='<tr><td><strong>Class Attendance</strong></td><td>_________________________________________________________________</td></tr>';
-    h+='<tr><td><strong>Class Participation</strong></td><td>_________________________________________________________________</td></tr>';
-    h+='<tr><td><strong>Homework/Assignments</strong></td><td>_________________________________________________________________</td></tr>';
-    h+='<tr><td><strong>General Conduct</strong></td><td>_________________________________________________________________</td></tr>';
-    h+='<tr><td><strong>Overall Class Performance</strong></td><td>_________________________________________________________________</td></tr>';
-    h+='</table>';
-    
-    // Vacation & Reopening Dates
-    h+='<h3 style="text-align:left;margin-top:20px">📅 IMPORTANT DATES</h3>';
-    h+='<table>';
-    h+='<tr><td style="text-align:left;width:50%"><strong>🏖 Date of Vacation:</strong></td><td style="text-align:left">'+vacationDate+'</td></tr>';
-    h+='<tr><td style="text-align:left"><strong>🏫 Date of Reopening:</strong></td><td style="text-align:left">'+reopeningDate+'</td></tr>';
-    h+='</table>';
-    
-    // Signature section
-    h+='<div class="footer">';
-    h+='<table style="border:none;margin-top:40px">';
-    h+='<tr>';
-    h+='<td style="border:none;text-align:left;width:50%"><div class="signature-line"></div><br>Class Teacher: '+currentTeacher.name+'</td>';
-    h+='<td style="border:none;text-align:right;width:50%"><div class="signature-line"></div><br>Headmaster</td>';
-    h+='</tr>';
-    h+='</table>';
-    h+='<p style="text-align:center;margin-top:10px">Generated by Milestone School Management System</p>';
-    h+='</div>';
-    
-    h+='</body></html>';
-    
-    const blob=new Blob([h],{type:'application/msword'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='class_report_term'+t+'.doc';
+    data.push([]);
+    data.push([`Total Students: ${r.students.length}`]);
+    data.push([`Teacher: ${currentTeacher.name}`]);
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } }];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Class Report');
+    XLSX.writeFile(wb, `class_report_term${t}.xlsx`);
+    showToast('✅ Excel saved!');
+  }
+
+  function downloadClassReportWord() {
+    const t = parseInt(document.getElementById('classReportTerm').value);
+    const r = buildClassReport(t);
+    if (!r || !r.students.length) return showToast('No students');
+    const currentYear = new Date().getFullYear();
+    let vacationDate = '', reopeningDate = '';
+    if (t === 1) { vacationDate = `April 15, ${currentYear}`; reopeningDate = `May 5, ${currentYear}`; }
+    else if (t === 2) { vacationDate = `August 15, ${currentYear}`; reopeningDate = `September 10, ${currentYear}`; }
+    else { vacationDate = `December 15, ${currentYear}`; reopeningDate = `January 10, ${currentYear + 1}`; }
+    let h = `<html><head><meta charset="UTF-8"><style>body{font-family:Arial;font-size:12px}h1{text-align:center;font-size:18px}h2{text-align:center;font-size:14px}table{border-collapse:collapse;width:100%;margin-bottom:15px}th{background:#2e7d32;color:white;padding:8px 5px;font-size:10px}td{padding:6px 4px;font-size:10px;border:1px solid #999}.school-header{background:#e8f5e9;font-weight:bold}.position-1{background:#fff9c4}.position-2{background:#f5f5f5}.position-3{background:#ffe0b2}.footer{font-size:10px;margin-top:20px}.signature-line{border-top:1px solid #000;width:200px;margin-top:30px;display:inline-block}</style></head><body>`;
+    h += `<h1>${currentSchool.name.toUpperCase()}</h1><h2>END OF TERM ${t} REPORT</h2><h3>Academic Year: ${currentYear}</h3>`;
+    h += `<table><tr><td class="school-header" colspan="4">CLASS SUMMARY</td></tr><tr><td><strong>Total Students:</strong> ${r.students.length}</td><td><strong>Teacher:</strong> ${currentTeacher.name}</td><td><strong>Term:</strong> ${t}</td><td><strong>Date:</strong> ${new Date().toLocaleDateString()}</td></tr></table>`;
+    h += `<table><tr><th rowspan="2">Pos</th><th rowspan="2">ID</th><th rowspan="2">Name</th>`;
+    r.subjects.forEach(s => h += `<th colspan="4">${s.name}</th>`);
+    h += `<th rowspan="2">Total</th><th rowspan="2">Avg</th><th rowspan="2">Grade</th><th rowspan="2">Remarks</th></tr><tr>`;
+    r.subjects.forEach(() => h += `<th>Class</th><th>Exam</th><th>Final</th><th>Grade</th>`);
+    h += `</tr>`;
+    r.students.forEach(st => {
+      let posClass = st.position === 1 ? 'position-1' : st.position === 2 ? 'position-2' : st.position === 3 ? 'position-3' : '';
+      h += `<tr class="${posClass}"><td><strong>${st.positionText}</strong></td><td>${st.id}</td><td>${st.name}</td>`;
+      r.subjects.forEach(s => {
+        const sc = st.subjects[s.name];
+        if (sc) h += `<td>${sc.class}%</td><td>${sc.exam}%</td><td><strong>${sc.final.toFixed(1)}%</strong></td><td><strong>${sc.grade.grade}</strong></td>`;
+        else h += `<td>—</td><td>—</td><td>—</td><td>—</td>`;
+      });
+      h += `<td><strong>${st.total.toFixed(1)}</strong></td><td>${st.avg}%</td><td><strong>${st.grade.grade}</strong></td>`;
+      let remarks = ''; const avgGrade = parseFloat(st.avg);
+      if (avgGrade >= 80) remarks = 'Excellent performance. Keep it up!';
+      else if (avgGrade >= 70) remarks = 'Very good. Continue working hard.';
+      else if (avgGrade >= 60) remarks = 'Good. Room for improvement.';
+      else if (avgGrade >= 50) remarks = 'Average. Needs more effort.';
+      else if (avgGrade >= 40) remarks = 'Below average. Must improve.';
+      else if (avgGrade > 0) remarks = 'Poor performance. Needs serious attention.';
+      else remarks = 'No assessment data.';
+      h += `<td>${remarks}</td></tr>`;
+    });
+    h += `</table><h3>📝 GENERAL CLASS REMARKS</h3><table><tr><th>Category</th><th>Remarks</th></tr>`;
+    ['Class Attendance', 'Class Participation', 'Homework/Assignments', 'General Conduct', 'Overall Class Performance'].forEach(cat => h += `<tr><td><strong>${cat}</strong></td><td>_________________________________________________________________</td></tr>`);
+    h += `</table><h3>📅 IMPORTANT DATES</h3><table><tr><td><strong>🏖 Date of Vacation:</strong></td><td>${vacationDate}</td></tr><tr><td><strong>🏫 Date of Reopening:</strong></td><td>${reopeningDate}</td></tr></table>`;
+    h += `<div class="footer"><table style="border:none;margin-top:40px"><tr><td style="border:none;text-align:left;width:50%"><div class="signature-line"></div><br>Class Teacher: ${currentTeacher.name}</td><td style="border:none;text-align:right;width:50%"><div class="signature-line"></div><br>Headmaster</td></tr></table><p style="text-align:center">Generated by Milestone School Management System</p></div></body></html>`;
+    const blob = new Blob([h], { type: 'application/msword' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `class_report_term${t}.doc`;
     a.click();
     showToast('✅ Word saved!');
-}
-// SETTINGS
-async function updateTeacherProfile(){const n=document.getElementById('profileName').value,ph=document.getElementById('profilePhone').value;await sb.from('teachers').update({name:n,phone:ph}).eq('id',currentTeacher.id);currentTeacher.name=n;currentTeacher.phone=ph;document.getElementById('teacherName').innerHTML=n;showToast('✅ Updated!')}
-async function changeTeacherPassword(){const cp=document.getElementById('currentPwd').value,np=document.getElementById('newPwd').value,conp=document.getElementById('confirmPwd').value;if(!cp||!np){showToast('Fill fields');return}if(np!==conp){showToast('Mismatch');return}if(np.length<6){showToast('6+ chars');return}if(currentTeacher.password!==hashPassword(cp)){showToast('Wrong password');return}await sb.from('teachers').update({password:hashPassword(np)}).eq('id',currentTeacher.id);currentTeacher.password=hashPassword(np);showToast('🔒 Changed!');document.getElementById('currentPwd').value='';document.getElementById('newPwd').value='';document.getElementById('confirmPwd').value=''}
-async function clearAllData(){if(!confirm('⚠️ Delete ALL data? This cannot be undone!'))return;if(!confirm('ARE YOU SURE?'))return;await sb.from('scores').delete().eq('school_id',currentSchool.id);await sb.from('enrollments').delete().eq('student_id',currentSchool.id);await sb.from('students').delete().eq('school_id',currentSchool.id);await sb.from('subjects').delete().eq('school_id',currentSchool.id);await sb.from('programmes').delete().eq('school_id',currentSchool.id);schoolData={programmes:[],subjects:[],students:[],scores:[]};showToast('🗑 All cleared!');await loadAllData()}
+  }
 
-function populateDropdowns(){
-    document.getElementById('scoreSubject').innerHTML='<option value="">Select Subject</option>'+schoolData.subjects.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-    document.getElementById('scoreStudent').innerHTML='<option value="">Select Student</option>'+schoolData.students.filter(s=>s.approved).map(s=>`<option value="${s.id}">${s.name} (${s.student_id})</option>`).join('');
-    document.getElementById('reportStudent').innerHTML='<option value="">Select Student</option>'+schoolData.students.filter(s=>s.approved).map(s=>`<option value="${s.id}">${s.name} (${s.student_id})</option>`).join('');
-}
-function showTab(tab,evt){['programmes','subjects','students','scores','reports','settings'].forEach(t=>document.getElementById(t+'Tab').style.display='none');document.getElementById(tab+'Tab').style.display='block';document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));if(evt&&evt.target)evt.target.classList.add('active')}
-function logout(){currentTeacher=null;currentSchool=null;sessionStorage.removeItem('teacher_session');document.getElementById('dashboardSection').style.display='none';document.getElementById('loginSection').style.display='block';showToast('👋 Logged out')}
-async function checkSession(){const s=sessionStorage.getItem('teacher_session');if(s){const sess=JSON.parse(s);const{data:teacher}=await sb.from('teachers').select('*').eq('id',sess.id).single();if(teacher){const{data:school}=await sb.from('schools').select('*').eq('id',teacher.school_id).single();if(school&&school.is_active){currentTeacher=teacher;currentSchool=school;document.getElementById('loginSection').style.display='none';document.getElementById('dashboardSection').style.display='block';document.getElementById('schoolName').innerHTML=school.name;document.getElementById('teacherName').innerHTML=teacher.name;document.getElementById('profileName').value=teacher.name;document.getElementById('profileEmail').value=teacher.email;document.getElementById('profilePhone').value=teacher.phone||'';await loadAllData();return}}}sessionStorage.removeItem('teacher_session')}
-checkSession();
+  async function updateTeacherProfile() {
+    const n = document.getElementById('profileName').value;
+    const ph = document.getElementById('profilePhone').value;
+    await sb.from('teachers').update({ name: n, phone: ph }).eq('id', currentTeacher.id);
+    currentTeacher.name = n;
+    currentTeacher.phone = ph;
+    document.getElementById('teacherName').textContent = n;
+    showToast('✅ Updated!');
+  }
+
+  async function changeTeacherPassword() {
+    const cp = document.getElementById('currentPwd').value;
+    const np = document.getElementById('newPwd').value;
+    const conp = document.getElementById('confirmPwd').value;
+    if (!cp || !np) return showToast('Fill fields');
+    if (np !== conp) return showToast('Mismatch');
+    if (np.length < 6) return showToast('6+ chars');
+    if (currentTeacher.password !== hashPassword(cp)) return showToast('Wrong password');
+    await sb.from('teachers').update({ password: hashPassword(np) }).eq('id', currentTeacher.id);
+    currentTeacher.password = hashPassword(np);
+    showToast('🔒 Changed!');
+    document.getElementById('currentPwd').value = '';
+    document.getElementById('newPwd').value = '';
+    document.getElementById('confirmPwd').value = '';
+  }
+
+  async function clearAllData() {
+    if (!confirm('⚠️ Delete ALL data? This cannot be undone!')) return;
+    if (!confirm('ARE YOU SURE?')) return;
+    await sb.from('scores').delete().eq('school_id', currentSchool.id);
+    await sb.from('students').delete().eq('school_id', currentSchool.id);
+    await sb.from('subjects').delete().eq('school_id', currentSchool.id);
+    await sb.from('programmes').delete().eq('school_id', currentSchool.id);
+    schoolData = { programmes: [], subjects: [], students: [], scores: [] };
+    showToast('🗑 All cleared!');
+    await loadAllData();
+  }
+
+  function populateDropdowns() {
+    document.getElementById('scoreSubject').innerHTML = '<option value="">Select Subject</option>' + schoolData.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    document.getElementById('scoreStudent').innerHTML = '<option value="">Select Student</option>' + schoolData.students.filter(s => s.approved).map(s => `<option value="${s.id}">${s.name} (${s.student_id})</option>`).join('');
+    document.getElementById('reportStudent').innerHTML = '<option value="">Select Student</option>' + schoolData.students.filter(s => s.approved).map(s => `<option value="${s.id}">${s.name} (${s.student_id})</option>`).join('');
+  }
+
+  function showTab(tab, evt) {
+    ['programmes', 'subjects', 'students', 'scores', 'reports', 'settings'].forEach(t => document.getElementById(t + 'Tab').style.display = 'none');
+    document.getElementById(tab + 'Tab').style.display = 'block';
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    if (evt && evt.target) evt.target.classList.add('active');
+  }
+
+  function logout() {
+    currentTeacher = null;
+    currentSchool = null;
+    sessionStorage.removeItem('teacher_session');
+    document.getElementById('dashboardSection').style.display = 'none';
+    document.getElementById('loginSection').style.display = 'block';
+    showToast('👋 Logged out');
+  }
+
+  async function checkSession() {
+    const s = sessionStorage.getItem('teacher_session');
+    if (s) {
+      const sess = JSON.parse(s);
+      const { data: teacher } = await sb.from('teachers').select('*').eq('id', sess.id).single();
+      if (teacher) {
+        const { data: school } = await sb.from('schools').select('*').eq('id', teacher.school_id).single();
+        if (school && school.is_active) {
+          currentTeacher = teacher;
+          currentSchool = school;
+          document.getElementById('loginSection').style.display = 'none';
+          document.getElementById('dashboardSection').style.display = 'block';
+          document.getElementById('schoolName').textContent = school.name;
+          document.getElementById('teacherName').textContent = teacher.name;
+          document.getElementById('profileName').value = teacher.name || '';
+          document.getElementById('profileEmail').value = teacher.email || '';
+          document.getElementById('profilePhone').value = teacher.phone || '';
+          await loadAllData();
+          return;
+        }
+      }
+    }
+    sessionStorage.removeItem('teacher_session');
+  }
+  checkSession();
 </script>
 </body>
 </html>
